@@ -7,11 +7,6 @@
 /**
  * @brief 解码quickjs数组到c++tuple中
  */
-// template <typename T, std::size_t Index>
-// T JSArrayUnwrapImpl(JSContext *ctx, JSValueConst v) {
-//   return QJSValueTraits<T>::Unwrap(ctx, v);
-// }
-
 template <typename Tuple, std::size_t... Is>
 Tuple JSArrayUnwrapImpl(JSContext *ctx, int argc, JSValueConst *argv,
                         absl::index_sequence<Is...>) {

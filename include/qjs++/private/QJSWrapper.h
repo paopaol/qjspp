@@ -46,6 +46,7 @@ public:
   static std::vector<JSCFunctionListEntry> proto_funcs_;
 };
 
+class QJSValue;
 class QJSValueProperty {
 public:
   QJSValueProperty(JSContext *ctx, JSValue self, const std::string &name,
@@ -66,10 +67,12 @@ public:
 
   template <typename Signature, typename F> QJSValueProperty &Function(F &&f);
 
+  QJSValue Value() const;
+
   /**
    * @brief 调用
    */
-  template <typename... Args> void operator()(Args &&...args);
+  template <typename... Args> QJSValue operator()(Args &&...args);
 
 private:
   JSContext *ctx_ = nullptr;

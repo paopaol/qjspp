@@ -34,12 +34,16 @@ QJSValueProperty &QJSValueProperty::Function(F &&f) {
   return *this;
 }
 
+inline QJSValue QJSValueProperty::Value() const {
+  return QJSValue(ctx_, JS_GetPropertyStr(ctx_, self_, name_.c_str()));
+}
+
 inline QJSValueProperty &QJSValueProperty::operator=(JSValue v) {
   JS_SetPropertyStr(ctx_, self_, name_.c_str(), v);
   return *this;
 }
 
-template <typename... Args> void QJSValueProperty::operator()(Args &&...args) {
-  QJSValue prop(ctx_, JS_GetPropertyStr(ctx_, self_, name_.c_str()));
-  prop(std::forward<Args>(args)...);
+template <typename... Args>
+QJSValue QJSValueProperty::operator()(Args &&...args) {
+  return Value()(std::forward<Args>(args)...);
 }

@@ -27,7 +27,7 @@ struct QJSValueTraits<
     int32_t t;
 
     if (JS_ToInt32(ctx, &t, v) < 0) {
-      throw QJSException();
+      throw QJSException(ctx);
     }
     return t;
   }
@@ -40,7 +40,7 @@ template <> struct QJSValueTraits<uint32_t> {
     uint32_t t;
 
     if (JS_ToUint32(ctx, &t, v) < 0) {
-      throw QJSException();
+      throw QJSException(ctx);
     }
     return t;
   }
@@ -58,7 +58,7 @@ struct QJSValueTraits<
     int64_t t;
 
     if (JS_ToInt64(ctx, &t, v) < 0) {
-      throw QJSException();
+      throw QJSException(ctx);
     }
     return t;
   }
@@ -73,7 +73,7 @@ struct QJSValueTraits<
     double t;
 
     if (JS_ToFloat64(ctx, &t, v) < 0) {
-      throw QJSException();
+      throw QJSException(ctx);
     }
     return t;
   }
@@ -86,7 +86,7 @@ template <> struct QJSValueTraits<std::string> {
     size_t len;
     const char *ptr = JS_ToCStringLen(ctx, &len, v);
     if (!ptr)
-      throw QJSException();
+      throw QJSException(ctx);
 
     return std::string(ptr, len);
   }

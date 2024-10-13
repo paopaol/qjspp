@@ -48,7 +48,8 @@ TEST(Context, Module) {
 
   ctx.Eval(R"xxx(
             import * as my from 'my_module';
-            return my.Print(333);
+            var ret = my.Print(333);
+            return ret;
         )xxx");
 
   auto result = ctx.Module("my_module")["Print"](123).As<uint32_t>();

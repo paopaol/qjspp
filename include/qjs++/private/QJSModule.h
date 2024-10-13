@@ -1,5 +1,6 @@
 #pragma once
 
+#include "qjs++/private/QJSException.h"
 #include "qjs++/private/QJSFunction.h"
 #include "qjs++/private/QJSWrapper.h"
 #include <algorithm>
@@ -85,9 +86,9 @@ inline QJSModule::QJSModule(QJSContext *ctx, const std::string &name)
 
     return 0;
   });
-  // if (!m_)
-  //   throw std::exception{ctx};
-  assert(m_);
+  if (!m_) {
+    throw QJSException(ctx_);
+  }
 }
 
 template <typename T> QJSModule &QJSModule::Class(const std::string &name) {
