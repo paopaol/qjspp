@@ -1,34 +1,50 @@
 #pragma once
 
-#include "quickjs/quickjs.h"
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
+
+#include "quickjs/quickjs.h"
 
 class QJSContext;
-class QJSRuntime {
+class QJSModule;
+class QJSValue;
+
+template <typename T> class QJSClassExport {
 public:
-  QJSRuntime() : rt_(JS_NewRuntime()) {}
+  QJSClassExport();
 
-  ~QJSRuntime() { JS_FreeRuntime(rt_); }
+  ~QJSClassExport();
 
-  bool IsJobPending() const { return JS_IsJobPending(rt_); }
+  QJSClassExport(QJSClassExport &&other);
 
-private:
-  JSRuntime *rt_ = nullptr;
-
-  friend class QJSContext;
-};
-
-template <typename T> class QJSClass {
-public:
-  QJSClass &Method();
+  QJSClassExport &operator=(QJSClassExport &&other);
 
   /**
    * @brief 将一个类注册到ctx中去
    *
    */
-  static void RegisterClass(QJSContext *ctx, const std::string &name);
+  static QJSClassExport Export(QJSModule *module, JSContext *ctx,
+                               const std::string &name);
+
+  /**
+   * @brief 为这个类导出构造函数
+   */
+  template <typename... Args>
+  QJSClassExport &Construct(const std::string &name);
+
+  template <typename F> QJSClassExport &Method(const std::string &name, F &&f);
+
+  void End();
+
+private:
+  class Private;
+  std::unique_ptr<Private> d;
+};
+
+template <typename T> class QJSClass {
+public:
+  QJSClass &Method();
 
   /**
    * @brief 为注册的类添加一个构造函数
@@ -41,9 +57,8 @@ private:
   std::string cls_name_;
 
 public:
-  static JSClassID cls_id_;
-  static JSClassDef cls_def_;
-  static std::vector<JSCFunctionListEntry> proto_funcs_;
+  static JSClassID id_;
+  static JSClassDef def_;
 };
 
 class QJSValue;
@@ -116,6 +131,8 @@ public:
    */
   template <typename R, typename... Args> QJSValue &operator=(R (*f)(Args...));
 
+  const JSValue &Raw() const;
+
 private:
   void Steal(QJSValue &&other);
 
@@ -136,6 +153,8 @@ public:
   QJSModuleExport(QJSModuleExport &&other);
 
   QJSModuleExport &operator=(QJSModuleExport &&other);
+
+  QJSModuleExport &operator=(const QJSValue &other);
 
   QJSModuleExport(const QJSModuleExport &other) = delete;
 
@@ -164,17 +183,31 @@ public:
 
   QJSModule() = default;
 
-  template <typename T> QJSModule &Class(const std::string &name);
+  template <typename T> QJSClassExport<T> Class(const std::string &name);
 
   QJSModuleExport &operator[](const std::string &name);
 
   const QJSModuleExport &operator[](const std::string &name) const;
 
+  QJSModuleExport &Export(const std::string &name);
+
 private:
-  JSModuleDef *m_ = nullptr;
-  JSContext *ctx_ = nullptr;
-  std::string name_;
-  std::unordered_map<std::string, QJSModuleExport> exports_;
+  class Private;
+  std::unique_ptr<Private> d;
+};
+
+class QJSRuntime {
+public:
+  QJSRuntime();
+
+  ~QJSRuntime();
+
+  bool IsJobPending() const;
+
+private:
+  JSRuntime *rt_ = nullptr;
+
+  friend class QJSContext;
 };
 
 class QJSContext {

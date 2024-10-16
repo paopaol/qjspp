@@ -70,3 +70,5 @@ inline void QJSValue::FreeInternalValue() {
     JS_FreeValue(ctx_, v_);
   }
 }
+
+inline const JSValue &QJSValue::Raw() const { return v_; }

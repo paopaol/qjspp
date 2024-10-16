@@ -100,11 +100,23 @@ template <typename T>
 struct QJSValueTraits<T *,
                       typename std::enable_if<std::is_class<T>::value>::type> {
   static JSValue Wrap(JSContext *ctx, T *v) {
-    auto inst = JS_NewObjectClass(ctx, QJSClass<T>::cls_id_);
+    auto inst = JS_NewObjectClass(ctx, QJSClass<T>::id_);
     if (JS_IsException(inst)) {
       return inst;
     }
     JS_SetOpaque(inst, v);
     return inst;
+  }
+};
+
+template <> struct QJSValueTraits<QJSValue> {
+  static JSValue Wrap(JSContext *ctx, const QJSValue &v) {
+    return JS_DupValue(ctx, v.Raw());
+  }
+};
+
+template <> struct QJSValueTraits<JSValue> {
+  static JSValue Wrap(JSContext *ctx, const JSValue &v) {
+    return JS_DupValue(ctx, v);
   }
 };

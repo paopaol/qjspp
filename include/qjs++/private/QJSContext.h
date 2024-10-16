@@ -1,7 +1,8 @@
 #pragma once
 
-#include "QJSWrapper.h"
 #include <cassert>
+
+#include "QJSWrapper.h"
 
 inline QJSContext::QJSContext(QJSRuntime &rumtime)
     : ctx_(JS_NewContext(rumtime.rt_)) {
@@ -14,17 +15,12 @@ inline QJSContext::~QJSContext() {
 }
 
 inline QJSValue QJSContext::Global() {
-  QJSValue value;
-
-  value.v_ = JS_GetGlobalObject(ctx_);
-  value.ctx_ = ctx_;
-
-  return value;
+  return QJSValue(ctx_, JS_GetGlobalObject(ctx_));
 }
 
-template <typename T> QJSClass<T> QJSContext::Class(const std::string &name) {
+template <typename T>
+QJSClass<T> QJSContext::Class(const std::string &name) {
   QJSClass<T> cls(this, name);
-
   return cls;
 }
 

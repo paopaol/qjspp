@@ -1,108 +1,73 @@
 #pragma once
 
-#include "qjs++/private/QJSException.h"
-#include "qjs++/private/QJSFunction.h"
-#include "qjs++/private/QJSWrapper.h"
 #include <algorithm>
 #include <cassert>
 #include <string>
 
-inline QJSModuleExport::QJSModuleExport(JSContext *ctx, JSModuleDef *m,
-                                        const std::string &name)
-    : ctx_(ctx), m_(m), name_(name) {}
+#include "qjs++/private/QJSException.h"
+#include "qjs++/private/QJSFunction.h"
+#include "qjs++/private/QJSWrapper.h"
 
-inline QJSModuleExport::~QJSModuleExport() { FreeInternal(); }
-
-inline QJSModuleExport::QJSModuleExport(QJSModuleExport &&other) {
-  StealFrom(other);
-}
-
-inline QJSModuleExport &QJSModuleExport::operator=(QJSModuleExport &&other) {
-  if (this == &other) {
-    return *this;
-  }
-  StealFrom(other);
-
-  return *this;
-}
-
-inline void QJSModuleExport::FreeInternal() {
-  m_ = nullptr;
-  name_.clear();
-
-  if (ctx_) {
-    JS_FreeValue(ctx_, v_);
-    ctx_ = nullptr;
-  }
-}
-
-inline void QJSModuleExport::StealFrom(QJSModuleExport &other) {
-  FreeInternal();
-
-  ctx_ = other.ctx_;
-  m_ = other.m_;
-  name_ = std::move(other.name_);
-
-  other.FreeInternal();
-}
-
-template <typename Signature, typename F>
-QJSModuleExport &QJSModuleExport::Function(F &&f) {
-  v_ = QJSValueTraits<QJSLambda<Signature>>::Wrap(ctx_, f);
-  JS_AddModuleExport(ctx_, m_, name_.c_str());
-  return *this;
-}
-
-template <typename... Args>
-QJSValue QJSModuleExport::operator()(Args &&...args) {
-  QJSValue f(ctx_, JS_DupValue(ctx_, v_));
-  return f(std::forward<Args>(args)...);
-}
+class QJSModule::Private {
+ public:
+  JSModuleDef *m = nullptr;
+  JSContext *ctx = nullptr;
+  std::string name;
+  std::unordered_map<std::string, QJSModuleExport> exports;
+};
 
 inline QJSModule::QJSModule(QJSContext *ctx, const std::string &name)
-    : ctx_(ctx->ctx_), name_(name) {
-  m_ = JS_NewCModule(ctx_, name.c_str(), [](JSContext *ctx, JSModuleDef *m) {
-    const auto compare =
-        [m](const std::pair<const std::string &, const QJSModule &> &module) {
-          return module.second.m_ == m;
-        };
+    : d(new Private) {
+  d->ctx = ctx->ctx_;
+  d->name = name;
+  d->m =
+      JS_NewCModule(d->ctx, name.c_str(), [](JSContext *ctx, JSModuleDef *m) {
+        const auto compare =
+            [m](const std::pair<const std::string &, const QJSModule &>
+                    &module) { return module.second.d->m == m; };
 
-    auto *context = static_cast<QJSContext *>(JS_GetContextOpaque(ctx));
+        auto *context = static_cast<QJSContext *>(JS_GetContextOpaque(ctx));
 
-    auto it = std::find_if(context->modules_.begin(), context->modules_.end(),
-                           compare);
-    if (it == context->modules_.end()) {
-      return -1;
-    }
+        auto it = std::find_if(context->modules_.begin(),
+                               context->modules_.end(), compare);
+        if (it == context->modules_.end()) {
+          return -1;
+        }
 
-    for (const auto &result : it->second.exports_) {
-      const auto &ex = result.second;
-      auto ret =
-          JS_SetModuleExport(ctx, m, ex.name_.c_str(), JS_DupValue(ctx, ex.v_));
-      if (ret != 0) {
-        return -1;
-      }
-    }
+        for (const auto &result : it->second.d->exports) {
+          const auto &ex = result.second;
+          auto ret = JS_SetModuleExport(ctx, m, ex.name_.c_str(),
+                                        JS_DupValue(ctx, ex.v_));
+          if (ret != 0) {
+            throw QJSException(ctx);
+            return -1;
+          }
+        }
 
-    return 0;
-  });
-  if (!m_) {
-    throw QJSException(ctx_);
+        return 0;
+      });
+  if (!d->m) {
+    throw QJSException(d->ctx);
   }
 }
 
-template <typename T> QJSModule &QJSModule::Class(const std::string &name) {
-  QJSClass<T>::RegisterClass(ctx_, name);
-  return *this;
+template <typename T>
+QJSClassExport<T> QJSModule::Class(const std::string &name) {
+  auto v = QJSClassExport<T>::Export(this, d->ctx, name);
+  return v;
 }
 
 inline QJSModuleExport &QJSModule::operator[](const std::string &name) {
-  auto result =
-      exports_.insert({name, QJSModuleExport(ctx_, m_, name.c_str())});
-  return result.first->second;
+  return Export(name);
 }
 
-inline const QJSModuleExport &
-QJSModule::operator[](const std::string &name) const {
-  return exports_.at(name);
+inline const QJSModuleExport &QJSModule::operator[](
+    const std::string &name) const {
+  return d->exports.at(name);
+}
+
+QJSModuleExport &QJSModule::Export(const std::string &name) {
+  auto result =
+      d->exports.insert({name, QJSModuleExport(d->ctx, d->m, name.c_str())});
+  return result.first->second;
 }

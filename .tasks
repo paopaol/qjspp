@@ -1,5 +1,14 @@
 [file-build]
-command=cmake --build build
+command=cmake --build build && ./build/tests/qjs++test
+cwd=$(VIM_ROOT)
+output=quickfix
+errorformat=%f:%l:%m
+save=1
+
+
+
+[run]
+command=./build/tests/qjs++test
 cwd=$(VIM_ROOT)
 output=quickfix
 errorformat=%f:%l:%m

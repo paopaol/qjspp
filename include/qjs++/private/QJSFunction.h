@@ -22,15 +22,6 @@ template <> struct QJSValueTraits<QJSCFunction> {
   }
 };
 
-namespace detail {
-template <typename T> struct Lambda;
-
-template <typename R, typename... Args> struct Lambda<R(Args...)> {
-  using RetType = R;
-};
-
-} // namespace detail
-
 template <typename Signature> struct QJSLambda;
 
 template <typename R, typename... Args> struct QJSLambda<R(Args...)> {
