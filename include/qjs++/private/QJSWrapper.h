@@ -10,30 +10,43 @@ class QJSContext;
 class QJSModule;
 class QJSValue;
 
-template <typename T> class QJSClassExport {
+template <typename T> class QJSClassExportor {
 public:
-  QJSClassExport();
+  QJSClassExportor();
 
-  ~QJSClassExport();
+  QJSClassExportor(JSContext *ctx, QJSModule *module, JSValue proto);
 
-  QJSClassExport(QJSClassExport &&other);
+  ~QJSClassExportor();
 
-  QJSClassExport &operator=(QJSClassExport &&other);
+  QJSClassExportor(QJSClassExportor &&other);
+
+  QJSClassExportor &operator=(QJSClassExportor &&other);
 
   /**
    * @brief 将一个类注册到ctx中去
    *
+   * @module 这个类注册到的module
+   *
+   * @ctx 这个类要注册到的JSContext
+   *
+   * @name 为这个类指定一个类名
    */
-  static QJSClassExport Export(QJSModule *module, JSContext *ctx,
-                               const std::string &name);
+  static QJSClassExportor New(QJSModule *module, JSContext *ctx,
+                              const std::string &name);
 
   /**
-   * @brief 为这个类导出构造函数
+   * @brief 为这个类注册构造函数
+   *
+   * @name 构造函数名
    */
   template <typename... Args>
-  QJSClassExport &Construct(const std::string &name);
+  QJSClassExportor &Construct(const std::string &name);
 
-  template <typename F> QJSClassExport &Method(const std::string &name, F &&f);
+  /**
+   * @brief 为这个类导出方法
+   */
+  template <typename F>
+  QJSClassExportor &Method(const std::string &name, F &&f);
 
   void End();
 
@@ -144,30 +157,48 @@ private:
   friend class QJSContext;
 };
 
-class QJSModuleExport {
+/**
+ * @brief module属性辅助类
+ */
+class QJSModuleProperty {
 public:
-  QJSModuleExport(JSContext *ctx, JSModuleDef *m, const std::string &name);
+  /**
+   * @brief 向ctx注册一个module，
+   *
+   * @name 要注册的module名称
+   */
+  QJSModuleProperty(JSContext *ctx, JSModuleDef *m, const std::string &name);
 
-  ~QJSModuleExport();
+  ~QJSModuleProperty();
 
-  QJSModuleExport(QJSModuleExport &&other);
+  QJSModuleProperty(QJSModuleProperty &&other);
 
-  QJSModuleExport &operator=(QJSModuleExport &&other);
+  QJSModuleProperty &operator=(QJSModuleProperty &&other);
 
-  QJSModuleExport &operator=(const QJSValue &other);
+  QJSModuleProperty &operator=(const QJSValue &other);
 
-  QJSModuleExport(const QJSModuleExport &other) = delete;
+  QJSModuleProperty(const QJSModuleProperty &other) = delete;
 
-  QJSModuleExport &operator=(const QJSModuleExport &other) = delete;
+  QJSModuleProperty &operator=(const QJSModuleProperty &other) = delete;
 
-  template <typename Signature, typename F> QJSModuleExport &Function(F &&f);
+  /**
+   * @brief 为该属性设置一个类型为F的f值
+   *
+   * 即，绑定一个函数f到该属性
+   */
+  template <typename Signature, typename F> QJSModuleProperty &Function(F &&f);
 
+  /**
+   * @brief 假如该属性是一个函数的话，那么这个可以调用之前绑定的函数
+   *
+   * @return 返回之前绑定的函数运行的返回值
+   */
   template <typename... Args> QJSValue operator()(Args &&...args);
 
 private:
   void FreeInternal();
 
-  void StealFrom(QJSModuleExport &other);
+  void StealFrom(QJSModuleProperty &other);
 
   JSContext *ctx_ = nullptr;
   JSModuleDef *m_ = nullptr;
@@ -183,13 +214,18 @@ public:
 
   QJSModule() = default;
 
-  template <typename T> QJSClassExport<T> Class(const std::string &name);
+  template <typename T> QJSClassExportor<T> Class(const std::string &name);
 
-  QJSModuleExport &operator[](const std::string &name);
+  QJSModuleProperty &operator[](const std::string &name);
 
-  const QJSModuleExport &operator[](const std::string &name) const;
+  const QJSModuleProperty &operator[](const std::string &name) const;
 
-  QJSModuleExport &Export(const std::string &name);
+  /**
+   * @brief 导出一个module
+   *
+   * @name 要导出的module名称
+   */
+  QJSModuleProperty &Export(const std::string &name);
 
 private:
   class Private;

@@ -7,7 +7,7 @@
 #include <cassert>
 #include <vector>
 
-template <typename T> class QJSClassExport<T>::Private {
+template <typename T> class QJSClassExportor<T>::Private {
 public:
   JSContext *ctx;
   QJSModule *module = nullptr;
@@ -16,33 +16,46 @@ public:
    * @brief 构造函数
    */
   std::unique_ptr<QJSValue> ctor;
+
   /**
    * @brief 原型
    */
   std::unique_ptr<QJSValue> proto;
-  static std::vector<JSCFunctionListEntry> protos_;
+
+  static std::vector<JSCFunctionListEntry> protos;
 };
 
-template <typename T> QJSClassExport<T>::QJSClassExport() : d(new Private) {}
-
-template <typename T> QJSClassExport<T>::~QJSClassExport() {}
+template <typename T>
+QJSClassExportor<T>::QJSClassExportor() : d(new Private) {}
 
 template <typename T>
-QJSClassExport<T>::QJSClassExport(QJSClassExport &&other)
+QJSClassExportor<T>::QJSClassExportor(JSContext *ctx, QJSModule *module,
+                                      JSValue proto)
+    : d(new Private) {
+  d->ctx = ctx;
+  d->module = module;
+  d->proto = std::make_unique<QJSValue>(ctx, proto);
+}
+
+template <typename T> QJSClassExportor<T>::~QJSClassExportor() {}
+
+template <typename T>
+QJSClassExportor<T>::QJSClassExportor(QJSClassExportor &&other)
     : d(std::move(other.d)) {}
 
 template <typename T>
-QJSClassExport<T> &QJSClassExport<T>::operator=(QJSClassExport &&other) {
+QJSClassExportor<T> &QJSClassExportor<T>::operator=(QJSClassExportor &&other) {
   d = std::move(other.d);
 }
 
 template <typename T>
-QJSClassExport<T> QJSClassExport<T>::Export(QJSModule *module, JSContext *ctx,
-                                            const std::string &name) {
+QJSClassExportor<T> QJSClassExportor<T>::New(QJSModule *module, JSContext *ctx,
+                                             const std::string &name) {
   using Class = QJSClass<T>;
 
   if (Class::id_ != 0) {
-    return QJSClassExport();
+    abort();
+    return QJSClassExportor();
   }
 
   Class::def_.class_name = strdup(name.c_str());
@@ -55,18 +68,12 @@ QJSClassExport<T> QJSClassExport<T>::Export(QJSModule *module, JSContext *ctx,
   auto proto = JS_NewObject(ctx);
   JS_SetClassProto(ctx, Class::id_, proto);
 
-  QJSClassExport ex;
-
-  ex.d->ctx = ctx;
-  ex.d->module = module;
-  ex.d->proto = std::make_unique<QJSValue>(ctx, JS_DupValue(ctx, proto));
-
-  return ex;
+  return QJSClassExportor(ctx, module, JS_DupValue(ctx, proto));
 }
 
 template <typename T>
 template <typename... Args>
-QJSClassExport<T> &QJSClassExport<T>::Construct(const std::string &name) {
+QJSClassExportor<T> &QJSClassExportor<T>::Construct(const std::string &name) {
   d->ctor = std::make_unique<QJSValue>(
       d->ctx, QJSValueTraits<QJSClassCtor<T>>::template Wrap<Args...>(
                   d->ctx, QJSClassCtor<T>(name)));
@@ -78,7 +85,8 @@ QJSClassExport<T> &QJSClassExport<T>::Construct(const std::string &name) {
 
 template <typename T>
 template <typename F>
-QJSClassExport<T> &QJSClassExport<T>::Method(const std::string &name, F &&f) {
+QJSClassExportor<T> &QJSClassExportor<T>::Method(const std::string &name,
+                                                 F &&f) {
   (*d->proto)[name] =
       QJSValueTraits<QJSClassMemberMethod<T>>::Wrap(d->ctx, std::forward<F>(f));
 

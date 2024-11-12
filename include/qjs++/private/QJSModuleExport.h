@@ -3,17 +3,17 @@
 #include "QJSWrapper.h"
 #include "qjs++/private/QJSFunction.h"
 
-inline QJSModuleExport::QJSModuleExport(JSContext *ctx, JSModuleDef *m,
+inline QJSModuleProperty::QJSModuleProperty(JSContext *ctx, JSModuleDef *m,
                                         const std::string &name)
     : ctx_(ctx), m_(m), name_(name) {}
 
-inline QJSModuleExport::~QJSModuleExport() { FreeInternal(); }
+inline QJSModuleProperty::~QJSModuleProperty() { FreeInternal(); }
 
-inline QJSModuleExport::QJSModuleExport(QJSModuleExport &&other) {
+inline QJSModuleProperty::QJSModuleProperty(QJSModuleProperty &&other) {
   StealFrom(other);
 }
 
-inline QJSModuleExport &QJSModuleExport::operator=(QJSModuleExport &&other) {
+inline QJSModuleProperty &QJSModuleProperty::operator=(QJSModuleProperty &&other) {
   if (this == &other) {
     return *this;
   }
@@ -22,13 +22,13 @@ inline QJSModuleExport &QJSModuleExport::operator=(QJSModuleExport &&other) {
   return *this;
 }
 
-inline QJSModuleExport &QJSModuleExport::operator=(const QJSValue &other) {
+inline QJSModuleProperty &QJSModuleProperty::operator=(const QJSValue &other) {
   v_ = QJSValueTraits<QJSValue>::Wrap(ctx_, other);
   JS_AddModuleExport(ctx_, m_, name_.c_str());
   return *this;
 }
 
-inline void QJSModuleExport::FreeInternal() {
+inline void QJSModuleProperty::FreeInternal() {
   m_ = nullptr;
   name_.clear();
 
@@ -38,7 +38,7 @@ inline void QJSModuleExport::FreeInternal() {
   }
 }
 
-inline void QJSModuleExport::StealFrom(QJSModuleExport &other) {
+inline void QJSModuleProperty::StealFrom(QJSModuleProperty &other) {
   FreeInternal();
 
   ctx_ = other.ctx_;
@@ -49,14 +49,14 @@ inline void QJSModuleExport::StealFrom(QJSModuleExport &other) {
 }
 
 template <typename Signature, typename F>
-QJSModuleExport &QJSModuleExport::Function(F &&f) {
+QJSModuleProperty &QJSModuleProperty::Function(F &&f) {
   v_ = QJSValueTraits<QJSLambda<Signature>>::Wrap(ctx_, f);
   JS_AddModuleExport(ctx_, m_, name_.c_str());
   return *this;
 }
 
 template <typename... Args>
-QJSValue QJSModuleExport::operator()(Args &&...args) {
+QJSValue QJSModuleProperty::operator()(Args &&...args) {
   QJSValue f(ctx_, JS_DupValue(ctx_, v_));
   return f(std::forward<Args>(args)...);
 }

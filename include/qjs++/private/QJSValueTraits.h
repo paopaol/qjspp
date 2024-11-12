@@ -1,12 +1,14 @@
 #pragma once
 
-#include "QJSException.h"
-#include "qjs++/private/QJSWrapper.h"
-#include "quickjs/quickjs.h"
 #include <string>
 #include <type_traits>
 
-template <typename T, typename = void> struct QJSValueTraits {
+#include "QJSException.h"
+#include "qjs++/private/QJSWrapper.h"
+#include "quickjs/quickjs.h"
+
+template <typename T, typename = void>
+struct QJSValueTraits {
   /**
    * @brief 将JSValueConst转换成c++内置类型
    */
@@ -35,7 +37,8 @@ struct QJSValueTraits<
   static JSValue Wrap(JSContext *ctx, T v) { return JS_NewInt32(ctx, v); }
 };
 
-template <> struct QJSValueTraits<uint32_t> {
+template <>
+struct QJSValueTraits<uint32_t> {
   static uint32_t Unwrap(JSContext *ctx, JSValueConst v) {
     uint32_t t;
 
@@ -81,17 +84,17 @@ struct QJSValueTraits<
   static JSValue Wrap(JSContext *ctx, T v) { return JS_NewFloat64(ctx, v); }
 };
 
-template <> struct QJSValueTraits<std::string> {
+template <>
+struct QJSValueTraits<std::string> {
   static std::string Unwrap(JSContext *ctx, JSValueConst v) {
     size_t len;
     const char *ptr = JS_ToCStringLen(ctx, &len, v);
-    if (!ptr)
-      throw QJSException(ctx);
+    if (!ptr) throw QJSException(ctx);
 
     return std::string(ptr, len);
   }
 
-  static JSValue Wrap(JSContext *ctx, const std::string v) {
+  static JSValue Wrap(JSContext *ctx, const std::string &v) {
     return JS_NewStringLen(ctx, v.data(), v.size());
   }
 };
@@ -109,13 +112,15 @@ struct QJSValueTraits<T *,
   }
 };
 
-template <> struct QJSValueTraits<QJSValue> {
+template <>
+struct QJSValueTraits<QJSValue> {
   static JSValue Wrap(JSContext *ctx, const QJSValue &v) {
     return JS_DupValue(ctx, v.Raw());
   }
 };
 
-template <> struct QJSValueTraits<JSValue> {
+template <>
+struct QJSValueTraits<JSValue> {
   static JSValue Wrap(JSContext *ctx, const JSValue &v) {
     return JS_DupValue(ctx, v);
   }

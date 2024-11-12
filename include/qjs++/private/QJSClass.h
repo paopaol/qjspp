@@ -70,8 +70,9 @@ struct QJSClassMemberMethod<R (T::*)(Args...)> {
     return QJSValueTraits<R>::Wrap(ctx, InvokeNative<R, Args...>(
                                             ctx,
                                             [&](Args &&...args) {
-                                              return (inst->*f)(
+                                              auto ret = (inst->*f)(
                                                   std::forward<Args>(args)...);
+                                              return ret;
                                             },
                                             argc, argv));
   };
@@ -85,6 +86,36 @@ struct QJSClassMemberMethod<R (T::*)(Args...)> {
   R (T::*f)(Args...);
 };
 
+template <typename T, typename R, typename... Args>
+struct QJSClassMemberMethod<R (T::*)(Args...) const> {
+  static JSValue Invoke(JSContext *ctx, JSValueConst this_val, int argc,
+                        JSValueConst *argv, int magic, void *opaque) {
+    auto *method =
+        reinterpret_cast<QJSClassMemberMethod<R (T::*)(Args...) const> *>(
+            opaque);
+    auto f = method->f;
+    auto *inst =
+        reinterpret_cast<T *>(JS_GetOpaque(this_val, QJSClass<T>::id_));
+
+    return QJSValueTraits<R>::Wrap(ctx, InvokeNative<R, Args...>(
+                                            ctx,
+                                            [&](Args &&...args) {
+                                              return (inst->*f)(
+                                                  std::forward<Args>(args)...);
+                                            },
+                                            argc, argv));
+  };
+
+  static void Finalizer(void *opaque) {
+    auto *method =
+        reinterpret_cast<QJSClassMemberMethod<R (T::*)(Args...) const> *>(
+            opaque);
+    delete method;
+  }
+
+  R (T::*f)(Args...) const;
+};
+
 /**
  * @brief 类成员函数
  */
@@ -92,6 +123,18 @@ template <typename T> struct QJSValueTraits<QJSClassMemberMethod<T>> {
   template <typename R, typename... Args>
   static JSValue Wrap(JSContext *ctx, R (T::*F)(Args...)) {
     using Signature = R (T::*)(Args...);
+
+    auto *holder = new QJSClassMemberMethod<Signature>;
+    holder->f = F;
+
+    return JS_NewCClosure(ctx, QJSClassMemberMethod<Signature>::Invoke, 0, 0,
+                          reinterpret_cast<void *>(holder),
+                          QJSClassMemberMethod<Signature>::Finalizer);
+  }
+
+  template <typename R, typename... Args>
+  static JSValue Wrap(JSContext *ctx, R (T::*F)(Args...) const) {
+    using Signature = R (T::*)(Args...) const;
 
     auto *holder = new QJSClassMemberMethod<Signature>;
     holder->f = F;

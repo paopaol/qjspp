@@ -5,15 +5,16 @@
 #include <string>
 
 #include "qjs++/private/QJSException.h"
-#include "qjs++/private/QJSFunction.h"
 #include "qjs++/private/QJSWrapper.h"
 
 class QJSModule::Private {
- public:
+public:
+  using QJSModuleExportMap = std::unordered_map<std::string, QJSModuleProperty>;
+
   JSModuleDef *m = nullptr;
   JSContext *ctx = nullptr;
   std::string name;
-  std::unordered_map<std::string, QJSModuleExport> exports;
+  QJSModuleExportMap exports;
 };
 
 inline QJSModule::QJSModule(QJSContext *ctx, const std::string &name)
@@ -31,7 +32,7 @@ inline QJSModule::QJSModule(QJSContext *ctx, const std::string &name)
         auto it = std::find_if(context->modules_.begin(),
                                context->modules_.end(), compare);
         if (it == context->modules_.end()) {
-          return -1;
+          throw std::runtime_error("invalid module");
         }
 
         for (const auto &result : it->second.d->exports) {
@@ -40,7 +41,6 @@ inline QJSModule::QJSModule(QJSContext *ctx, const std::string &name)
                                         JS_DupValue(ctx, ex.v_));
           if (ret != 0) {
             throw QJSException(ctx);
-            return -1;
           }
         }
 
@@ -52,22 +52,21 @@ inline QJSModule::QJSModule(QJSContext *ctx, const std::string &name)
 }
 
 template <typename T>
-QJSClassExport<T> QJSModule::Class(const std::string &name) {
-  auto v = QJSClassExport<T>::Export(this, d->ctx, name);
-  return v;
+QJSClassExportor<T> QJSModule::Class(const std::string &name) {
+  return QJSClassExportor<T>::New(this, d->ctx, name);
 }
 
-inline QJSModuleExport &QJSModule::operator[](const std::string &name) {
+inline QJSModuleProperty &QJSModule::operator[](const std::string &name) {
   return Export(name);
 }
 
-inline const QJSModuleExport &QJSModule::operator[](
-    const std::string &name) const {
+inline const QJSModuleProperty &
+QJSModule::operator[](const std::string &name) const {
   return d->exports.at(name);
 }
 
-QJSModuleExport &QJSModule::Export(const std::string &name) {
+inline QJSModuleProperty &QJSModule::Export(const std::string &name) {
   auto result =
-      d->exports.insert({name, QJSModuleExport(d->ctx, d->m, name.c_str())});
+      d->exports.insert({name, QJSModuleProperty(d->ctx, d->m, name.c_str())});
   return result.first->second;
 }

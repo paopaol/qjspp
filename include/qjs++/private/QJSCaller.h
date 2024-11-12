@@ -1,8 +1,10 @@
 #pragma once
 
-#include "QJSValueTraits.h"
 #include <absl/utility/utility.h>
+
 #include <tuple>
+
+#include "QJSValueTraits.h"
 
 /**
  * @brief 解码quickjs数组到c++tuple中
@@ -10,7 +12,7 @@
 template <typename Tuple, std::size_t... Is>
 Tuple JSArrayUnwrapImpl(JSContext *ctx, int argc, JSValueConst *argv,
                         absl::index_sequence<Is...>) {
-  return Tuple(
+  return std::make_tuple(
       QJSValueTraits<typename std::tuple_element<Is, Tuple>::type>::Unwrap(
           ctx, argv[Is])...);
 }
@@ -18,9 +20,8 @@ Tuple JSArrayUnwrapImpl(JSContext *ctx, int argc, JSValueConst *argv,
 template <typename... Args>
 std::tuple<Args...> JSArrayUnwrap(JSContext *ctx, int argc,
                                   JSValueConst *argv) {
-  using Tuple = std::tuple<typename std::decay<Args>::type...>;
-  return JSArrayUnwrapImpl<Tuple>(ctx, argc, argv,
-                                  absl::index_sequence_for<Args...>());
+  return JSArrayUnwrapImpl<std::tuple<Args...>>(
+      ctx, argc, argv, absl::index_sequence_for<Args...>());
 }
 
 /**
@@ -28,6 +29,7 @@ std::tuple<Args...> JSArrayUnwrap(JSContext *ctx, int argc,
  */
 template <typename R, typename... Args, typename Callable>
 R InvokeNative(JSContext *ctx, Callable &&call, int argc, JSValueConst *argv) {
-  return absl::apply(std::forward<Callable>(call),
-                     JSArrayUnwrap<Args...>(ctx, argc, argv));
+  auto args =
+      JSArrayUnwrap<typename std::decay<Args>::type...>(ctx, argc, argv);
+  return absl::apply(std::forward<Callable>(call), std::move(args));
 }

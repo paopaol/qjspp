@@ -10,12 +10,15 @@ struct Point {
     printf("construct:%p\n", this);
   }
 
-  ~Point() { puts("ddddddddddddddddd"); }
+  ~Point() { printf("dtor called:%p\n", this); }
 
-  int Dump(const std::string &prefix) {
-    //printf("dump %s %p\n", prefix.c_str(), this);
-    return 0;
+  int32_t StrLen(const std::string &prefix) const {
+    printf("StrLen  [%zu] %zu %s %p\n", strlen(prefix.c_str()), prefix.size(),
+           prefix.c_str(), this);
+    return prefix.size();
   }
+
+  int Print(int32_t len) { printf("len:%d\n", len); }
 };
 
 static int32_t Print1(int a) {
@@ -71,14 +74,16 @@ TEST(Class, Register) {
     ctx.Module("my_module")
         .Class<Point>("Point")
         .Construct<int32_t, int32_t>("Point")
-        .Method("Dump", &Point::Dump);
+        .Method("StrLen", &Point::StrLen)
+        .Method("Print", &Point::Print);
+
     ctx.Eval(R"xxx(
                 import * as my from 'my_module';
 
-                //my.Print(4444);
                 var p;
                 p = new my.Point(1,2);
-                p.Dump("abc");
+                var size = p.StrLen("abcdddddddd");
+                p.Print(size);
                 )xxx");
   } catch (const QJSException &e) {
     puts(e.String().c_str());
