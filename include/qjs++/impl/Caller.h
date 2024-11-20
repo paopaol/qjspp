@@ -4,16 +4,16 @@
 
 #include <tuple>
 
-#include "QJSValueTraits.h"
+#include "traits/JSValueTraits.h"
 
 /**
- * @brief 解码quickjs数组到c++tuple中
+ * @brief decode JSValues to tuple
  */
 template <typename Tuple, std::size_t... Is>
 Tuple JSArrayUnwrapImpl(JSContext *ctx, int argc, JSValueConst *argv,
                         absl::index_sequence<Is...>) {
   return std::make_tuple(
-      QJSValueTraits<typename std::tuple_element<Is, Tuple>::type>::Unwrap(
+      JSValueTraits<typename std::tuple_element<Is, Tuple>::type>::Unwrap(
           ctx, argv[Is])...);
 }
 

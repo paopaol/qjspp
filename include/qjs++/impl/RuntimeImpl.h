@@ -1,7 +1,9 @@
 #pragma once
 
-#include "QJSWrapper.h"
+#include "qjs++/impl/QJS++Impl.h"
 #include "quickjs/quickjs-libc.h"
+
+namespace qjs {
 
 static JSContext *JS_NewCustomContext(JSRuntime *rt) {
   JSContext *ctx;
@@ -20,16 +22,17 @@ static JSContext *JS_NewCustomContext(JSRuntime *rt) {
   }
 #endif
   /* system modules */
-  //js_init_module_std(ctx, "std");
-  //js_init_module_os(ctx, "os");
+  // js_init_module_std(ctx, "std");
+  // js_init_module_os(ctx, "os");
   return ctx;
 }
 
-inline QJSRuntime::QJSRuntime() : rt_(JS_NewRuntime()) {
+inline Runtime::Runtime() : rt_(JS_NewRuntime()) {
   // js_std_set_worker_new_context_func(JS_NewCustomContext);
   // js_std_init_handlers(rt_);
 }
 
-inline QJSRuntime::~QJSRuntime() { JS_FreeRuntime(rt_); }
+inline Runtime::~Runtime() { JS_FreeRuntime(rt_); }
 
-inline bool QJSRuntime::IsJobPending() const { return JS_IsJobPending(rt_); }
+inline bool Runtime::IsJobPending() const { return JS_IsJobPending(rt_); }
+} // namespace qjs

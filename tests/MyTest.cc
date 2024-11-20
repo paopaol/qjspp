@@ -5,20 +5,16 @@ struct Point {
   int32_t x = 0;
   int32_t y = 0;
 
-  Point(int32_t x, int32_t y) : x(x), y(y) {
-    int a;
-    printf("construct:%p\n", this);
-  }
+  Point(int32_t x, int32_t y) : x(x), y(y) { printf("construct:%p\n", this); }
 
   ~Point() { printf("dtor called:%p\n", this); }
 
   int32_t StrLen(const std::string &prefix) const {
-    printf("StrLen  [%zu] %zu %s %p\n", strlen(prefix.c_str()), prefix.size(),
-           prefix.c_str(), this);
+    printf("StrLen  [%zu]  %s %p\n", prefix.size(), prefix.c_str(), this);
     return prefix.size();
   }
 
-  int Print(int32_t len) { printf("len:%d\n", len); }
+  int Print(int32_t len) const { printf("Print:%d\n", len); }
 };
 
 static int32_t Print1(int a) {
@@ -51,6 +47,15 @@ TEST(property, Function) {
   ctx.Eval(script);
 }
 
+TEST(property, Functional) {
+  QJSRuntime runtime;
+  QJSContext ctx(runtime);
+
+  auto global = ctx.Global();
+
+  global["Print"](100, 200);
+}
+
 TEST(Context, Module) {
   QJSRuntime runtime;
   QJSContext ctx(runtime);
@@ -80,10 +85,8 @@ TEST(Class, Register) {
     ctx.Eval(R"xxx(
                 import * as my from 'my_module';
 
-                var p;
-                p = new my.Point(1,2);
-                var size = p.StrLen("abcdddddddd");
-                p.Print(size);
+                var p = new my.Point(1,2);
+                p.Print(p.StrLen("abcdddddddd"));
                 )xxx");
   } catch (const QJSException &e) {
     puts(e.String().c_str());
