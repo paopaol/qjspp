@@ -14,6 +14,8 @@ public:
 
   Value(Context *ctx);
 
+  Value(Context *ctx, JSValue v);
+
   template <typename T, typename = typename std::enable_if<
                             !std::is_same<JSValue, T>::value &&
                             !std::is_same<Value, T>::value>::type>
@@ -41,6 +43,8 @@ public:
   Value &operator=(std::function<R(Args...)> f);
 
   template <typename F> Value &SetLambda(std::function<F> f);
+
+  template <typename... Args> Value operator()(Args &&...args);
 
   bool IsNull() const;
 

@@ -15,7 +15,17 @@ inline Value::Value()
 inline Value::Value(Context *ctx)
     : ctx_(ctx), parent_(JS_UNDEFINED), v_(JS_UNDEFINED) {}
 
+inline Value::Value(Context *ctx, JSValue v) : ctx_(ctx), v_(v) {}
+
 inline Value::~Value() { FreeInternalValue(); }
+
+template <typename... Args> Value Value::operator()(Args &&...args) {
+  JSValue argv[] = {
+      ValueTraits<Args>::Wrap(ctx_->Get(), std::forward<Args>(args))...};
+  auto rt = JS_Call(ctx_->Get(), v_, JS_UNDEFINED, sizeof...(Args), argv);
+
+  return Value(ctx_, rt);
+}
 
 inline bool Value::IsNull() const { return JS_IsNull(v_); }
 

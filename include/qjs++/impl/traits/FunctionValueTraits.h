@@ -3,6 +3,7 @@
 #include "qjs++/impl/Caller.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include "quickjs/quickjs.h"
+#include <cassert>
 
 template <typename T> struct QJSFunction;
 
@@ -35,6 +36,7 @@ struct QJSFunction<std::function<R(Args...)>> {
     auto F = reinterpret_cast<QJSFunction<Func> *>(opaque);
 
     const auto &f = F->f;
+    assert(f);
 
     return ValueTraits<R>::Wrap(ctx,
                                 InvokeNative<R, Args...>(ctx, f, argc, argv));
@@ -118,6 +120,7 @@ struct ValueTraits<QJSFunction<std::function<R(Args...)>>> {
 
   static JSValue Wrap(JSContext *ctx, Func f) {
     auto *caller = new QJSFunction<Func>;
+    caller->f = std::move(f);
 
     return JS_NewCClosure(ctx, QJSFunction<Func>::Invoke, 0, 0, caller,
                           QJSFunction<Func>::Finalizer);

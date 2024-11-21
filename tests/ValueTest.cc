@@ -160,3 +160,10 @@ TEST_F(ValueTest, IsFunction) {
   v.SetLambda<int(int)>([](int) { return 0; });
   EXPECT_TRUE(v.IsFunction());
 }
+
+TEST_F(ValueTest, CallLambda) {
+  qjs::Value v(&ctx);
+
+  v.SetLambda<int(int)>([](int var) { return var + 1; });
+  EXPECT_EQ(v(5).As<int32_t>(), 6);
+}
