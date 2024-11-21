@@ -7,6 +7,9 @@ namespace qjs {
 inline Value::Value()
     : ctx_(nullptr), parent_(JS_UNDEFINED), v_(JS_UNDEFINED) {}
 
+inline Value::Value(Context *ctx)
+    : ctx_(ctx), parent_(JS_UNDEFINED), v_(JS_UNDEFINED) {}
+
 inline Value::~Value() { FreeInternalValue(); }
 
 inline bool Value::IsNull() const { return JS_IsNull(v_); }
@@ -24,6 +27,12 @@ inline Value &Value::operator=(Value &&other) {
 
   Steal(std::move(other));
 
+  return *this;
+}
+
+template <typename T, typename U> Value &Value::operator=(T v) {
+  FreeInternalValue();
+  v_ = ValueTraits<T>::Wrap(ctx_->Get(), std::move(v));
   return *this;
 }
 

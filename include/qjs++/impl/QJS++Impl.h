@@ -53,8 +53,11 @@ class Value {
 public:
   Value();
 
+  Value(Context *ctx);
+
   template <typename T, typename = typename std::enable_if<
-                            !std::is_same<JSValue, T>::value>::type>
+                            !std::is_same<JSValue, T>::value &&
+                            !std::is_same<Value, T>::value>::type>
   Value(Context *ctx, T v)
       : ctx_(ctx), v_(ValueTraits<T>::Wrap(ctx->Get(), std::move(v))) {}
 
@@ -67,6 +70,11 @@ public:
   Value &operator=(const Value &) = delete;
 
   Value &operator=(Value &&other);
+
+  template <typename T, typename = typename std::enable_if<
+                            !std::is_same<JSValue, T>::value &&
+                            !std::is_same<Value, T>::value>::type>
+  Value &operator=(T v);
 
   bool IsNull() const;
 
