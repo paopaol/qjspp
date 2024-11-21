@@ -30,9 +30,9 @@ inline Value &Value::operator=(Value &&other) {
   return *this;
 }
 
-template <typename T, typename U> Value &Value::operator=(T v) {
+template <typename T, typename U> Value &Value::operator=(T &&v) {
   FreeInternalValue();
-  v_ = ValueTraits<T>::Wrap(ctx_->Get(), std::move(v));
+  v_ = ValueTraits<T>::Wrap(ctx_->Get(), std::forward<T>(v));
   return *this;
 }
 

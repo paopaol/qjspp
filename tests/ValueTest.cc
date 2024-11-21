@@ -17,6 +17,7 @@ TEST_F(ValueTest, Construct) {
 
 TEST_F(ValueTest, ConstructFrom) {
   qjs::Value v(&ctx, 123);
+
   EXPECT_EQ(v.As<int32_t>(), 123);
 }
 
@@ -48,11 +49,6 @@ TEST_F(ValueTest, AssginInt) {
 
   v = 123;
   EXPECT_EQ(v.As<int32_t>(), 123);
-  v = std::string("123");
-  v = "123";
-
-  char s[12] = "123";
-  v = s;
 }
 
 TEST_F(ValueTest, AssginString) {

@@ -74,7 +74,7 @@ public:
   template <typename T, typename = typename std::enable_if<
                             !std::is_same<JSValue, T>::value &&
                             !std::is_same<Value, T>::value>::type>
-  Value &operator=(T v);
+  Value &operator=(T &&v);
 
   bool IsNull() const;
 
