@@ -13,7 +13,7 @@ template <typename Tuple, std::size_t... Is>
 Tuple JSArrayUnwrapImpl(JSContext *ctx, int argc, JSValueConst *argv,
                         absl::index_sequence<Is...>) {
   return std::make_tuple(
-      JSValueTraits<typename std::tuple_element<Is, Tuple>::type>::Unwrap(
+      ValueTraits<typename std::tuple_element<Is, Tuple>::type>::Unwrap(
           ctx, argv[Is])...);
 }
 

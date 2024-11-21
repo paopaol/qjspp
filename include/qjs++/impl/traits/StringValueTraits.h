@@ -6,7 +6,7 @@
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include "quickjs/quickjs.h"
 
-template <> struct JSValueTraits<std::string> {
+template <> struct ValueTraits<std::string> {
   static std::string Unwrap(JSContext *ctx, JSValueConst v) {
     size_t len;
     const char *ptr = JS_ToCStringLen(ctx, &len, v);

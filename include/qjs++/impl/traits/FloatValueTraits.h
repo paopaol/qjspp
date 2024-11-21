@@ -8,7 +8,7 @@ template <typename T>
 static constexpr bool IsFloatPoint = std::is_floating_point<T>::value;
 
 template <typename T>
-struct JSValueTraits<T, typename std::enable_if<IsFloatPoint<T>>::type> {
+struct ValueTraits<T, typename std::enable_if<IsFloatPoint<T>>::type> {
   static T Unwrap(JSContext *ctx, JSValueConst v) {
     double t;
 

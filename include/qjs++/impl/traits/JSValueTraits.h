@@ -2,13 +2,13 @@
 
 #include "quickjs/quickjs.h"
 
-template <typename T, typename = void> struct JSValueTraits {
+template <typename T, typename = void> struct ValueTraits {
   static T Unwrap(JSContext *ctx, JSValueConst v) = delete;
 
   static JSValue Wrap(JSContext *ctx, T v) = delete;
 };
 
-template <> struct JSValueTraits<JSValue> {
+template <> struct ValueTraits<JSValue> {
   static JSValue Unwrap(JSContext *ctx, JSValueConst v) {
     return JS_DupValue(ctx, v);
   }

@@ -34,4 +34,6 @@ inline Context::~Context() {
 // inline const Module &Context::Module(const std::string &name) const {
 //   return modules_.at(name);
 // }
+
+inline JSContext *Context::Get() const { return ctx_; }
 } // namespace qjs

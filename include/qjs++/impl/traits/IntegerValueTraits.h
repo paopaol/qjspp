@@ -18,8 +18,7 @@ static constexpr auto Is64Integer =
     std::is_same<T, uint64_t>::value || std::is_same<T, int64_t>::value;
 
 template <typename T>
-struct JSValueTraits<T,
-                     typename std::enable_if<IsSmallSignedInteger<T>>::type> {
+struct ValueTraits<T, typename std::enable_if<IsSmallSignedInteger<T>>::type> {
   static T Unwrap(JSContext *ctx, JSValueConst v) {
     int32_t t;
 
@@ -33,8 +32,8 @@ struct JSValueTraits<T,
 };
 
 template <typename T>
-struct JSValueTraits<T,
-                     typename std::enable_if<IsSmallUnsignedInteger<T>>::type> {
+struct ValueTraits<T,
+                   typename std::enable_if<IsSmallUnsignedInteger<T>>::type> {
   static T Unwrap(JSContext *ctx, JSValueConst v) {
     uint32_t t;
 
@@ -48,7 +47,7 @@ struct JSValueTraits<T,
 };
 
 template <typename T>
-struct JSValueTraits<T, typename std::enable_if<Is64Integer<T>>::type> {
+struct ValueTraits<T, typename std::enable_if<Is64Integer<T>>::type> {
   static T Unwrap(JSContext *ctx, JSValueConst v) {
     int64_t t;
 
@@ -61,7 +60,7 @@ struct JSValueTraits<T, typename std::enable_if<Is64Integer<T>>::type> {
   static JSValue Wrap(JSContext *ctx, T v) { return JS_NewInt64(ctx, v); }
 };
 
-template <> struct JSValueTraits<bool> {
+template <> struct ValueTraits<bool> {
   static bool Unwrap(JSContext *ctx, JSValueConst v) {
     auto b = JS_ToBool(ctx, v);
     if (b < 0) {

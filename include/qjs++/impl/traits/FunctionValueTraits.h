@@ -16,8 +16,8 @@ template <typename R, typename... Args> struct QJSFunction<R (*)(Args...)> {
                         JSValueConst *argv, int magic, void *opaque) {
     auto F = reinterpret_cast<R (*)(Args...)>(opaque);
 
-    return JSValueTraits<R>::Wrap(ctx,
-                                  InvokeNative<R, Args...>(ctx, F, argc, argv));
+    return ValueTraits<R>::Wrap(ctx,
+                                InvokeNative<R, Args...>(ctx, F, argc, argv));
   };
 
   Func f;
@@ -75,7 +75,7 @@ struct QJSFunction<R (T::*)(Args...) const> {
  * @brief c function or static class::method
  */
 template <typename R, typename... Args>
-struct JSValueTraits<QJSFunction<R (*)(Args...)>> {
+struct ValueTraits<QJSFunction<R (*)(Args...)>> {
   static JSValue Wrap(JSContext *ctx, R (*f)(Args...)) {
     return JS_NewCClosure(ctx, QJSFunction<R (*)(Args...)>::Invoke, 0, 0,
                           reinterpret_cast<void *>(f), nullptr);
@@ -86,7 +86,7 @@ struct JSValueTraits<QJSFunction<R (*)(Args...)>> {
  * @brief class::method
  */
 template <typename T, typename R, typename... Args>
-struct JSValueTraits<QJSFunction<R (T::*)(Args...)>> {
+struct ValueTraits<QJSFunction<R (T::*)(Args...)>> {
   using Func = R (T::*)(Args...);
 
   static JSValue Wrap(JSContext *ctx, Func f) {
@@ -100,7 +100,7 @@ struct JSValueTraits<QJSFunction<R (T::*)(Args...)>> {
  * @brief class::const methos
  */
 template <typename T, typename R, typename... Args>
-struct JSValueTraits<QJSFunction<R (T::*)(Args...) const>> {
+struct ValueTraits<QJSFunction<R (T::*)(Args...) const>> {
   using Func = R (T::*)(Args...) const;
 
   static JSValue Wrap(JSContext *ctx, Func f) {

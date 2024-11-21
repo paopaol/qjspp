@@ -7,7 +7,7 @@
 
 template <typename T> struct ArrayHelper {
   static void Push(JSContext *ctx, JSValue array, uint32_t index, T v) {
-    JS_SetPropertyUint32(ctx, array, index, JSValueTraits<T>::Wrap(ctx, v));
+    JS_SetPropertyUint32(ctx, array, index, ValueTraits<T>::Wrap(ctx, v));
   }
 
   static T At(JSContext *ctx, JSValue array, uint32_t index) {
@@ -15,7 +15,7 @@ template <typename T> struct ArrayHelper {
     if (JS_IsException(e)) {
       throw QJSException(ctx);
     }
-    auto v = JSValueTraits<T>::Unwrap(ctx, e);
+    auto v = ValueTraits<T>::Unwrap(ctx, e);
     /**
      * @brief FIXME(jinzhao):auto free
      */
@@ -24,7 +24,7 @@ template <typename T> struct ArrayHelper {
   }
 };
 
-template <typename T> struct JSValueTraits<std::vector<T>> {
+template <typename T> struct ValueTraits<std::vector<T>> {
   static std::vector<T> Unwrap(JSContext *ctx, JSValueConst v) {
     std::vector<T> vec;
 
