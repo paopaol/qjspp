@@ -82,6 +82,13 @@ TEST_F(ValueTraitsTest, CFunction) {
   JS_FreeValue(ctx, v);
 }
 
+TEST_F(ValueTraitsTest, Functional) {
+  JSValue v = ValueTraits<QJSFunction<std::function<int(int)>>>::Wrap(
+      ctx, [](int) { return 0; });
+  EXPECT_TRUE(JS_IsFunction(ctx, v));
+  JS_FreeValue(ctx, v);
+}
+
 TEST_F(ValueTraitsTest, ClassMemberMethod) {
   class Class {
   public:

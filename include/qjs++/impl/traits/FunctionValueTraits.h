@@ -24,6 +24,31 @@ template <typename R, typename... Args> struct QJSFunction<R (*)(Args...)> {
 };
 
 /**
+ * @brief lambda
+ */
+template <typename R, typename... Args>
+struct QJSFunction<std::function<R(Args...)>> {
+  using Func = std::function<R(Args...)>;
+
+  static JSValue Invoke(JSContext *ctx, JSValueConst this_val, int argc,
+                        JSValueConst *argv, int magic, void *opaque) {
+    auto F = reinterpret_cast<QJSFunction<Func> *>(opaque);
+
+    const auto &f = F->f;
+
+    return ValueTraits<R>::Wrap(ctx,
+                                InvokeNative<R, Args...>(ctx, f, argc, argv));
+  };
+
+  static void Finalizer(void *opaque) {
+    auto *method = reinterpret_cast<QJSFunction<Func> *>(opaque);
+    delete method;
+  }
+
+  Func f;
+};
+
+/**
  * @brief mutable none static class::method
  */
 template <typename T, typename R, typename... Args>
@@ -76,9 +101,26 @@ struct QJSFunction<R (T::*)(Args...) const> {
  */
 template <typename R, typename... Args>
 struct ValueTraits<QJSFunction<R (*)(Args...)>> {
-  static JSValue Wrap(JSContext *ctx, R (*f)(Args...)) {
-    return JS_NewCClosure(ctx, QJSFunction<R (*)(Args...)>::Invoke, 0, 0,
+  using Func = R (*)(Args...);
+
+  static JSValue Wrap(JSContext *ctx, Func f) {
+    return JS_NewCClosure(ctx, QJSFunction<Func>::Invoke, 0, 0,
                           reinterpret_cast<void *>(f), nullptr);
+  }
+};
+
+/**
+ * @brief lambda
+ */
+template <typename R, typename... Args>
+struct ValueTraits<QJSFunction<std::function<R(Args...)>>> {
+  using Func = std::function<R(Args...)>;
+
+  static JSValue Wrap(JSContext *ctx, Func f) {
+    auto *caller = new QJSFunction<Func>;
+
+    return JS_NewCClosure(ctx, QJSFunction<Func>::Invoke, 0, 0, caller,
+                          QJSFunction<Func>::Finalizer);
   }
 };
 

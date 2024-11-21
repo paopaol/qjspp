@@ -2,6 +2,7 @@
 
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include "quickjs/quickjs.h"
+#include <functional>
 #include <unordered_map>
 
 namespace qjs {
@@ -76,9 +77,38 @@ public:
                             !std::is_same<Value, T>::value>::type>
   Value &operator=(T &&v);
 
+  template <typename R, typename... Args> Value &operator=(R (*f)(Args...));
+
+  template <typename R, typename... Args>
+  Value &operator=(std::function<R(Args...)> f);
+
+  template <typename F> Value &SetLambda(std::function<F> f);
+
   bool IsNull() const;
 
   bool IsUndefined() const;
+
+  bool IsException() const;
+
+  bool IsBool() const;
+
+  bool IsError() const;
+
+  bool IsArray() const;
+
+  bool IsNumber() const;
+
+  bool IsString() const;
+
+  bool IsBigInt() const;
+
+  bool IsObject() const;
+
+  bool IsSymbol() const;
+
+  bool IsBigFloat() const;
+
+  bool IsFunction() const;
 
   template <typename T> T As() const;
 

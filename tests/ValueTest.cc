@@ -79,3 +79,84 @@ TEST_F(ValueTest, AssginVector) {
   v = std::vector<int64_t>{1, 2, 3};
   EXPECT_EQ(v.As<std::vector<int64_t>>(), std::vector<int64_t>({1, 2, 3}));
 }
+
+TEST_F(ValueTest, IsNull) { qjs::Value v(&ctx); }
+
+TEST_F(ValueTest, IsUndefined) { qjs::Value v(&ctx); }
+
+TEST_F(ValueTest, IsException) { qjs::Value v(&ctx); }
+
+TEST_F(ValueTest, IsBool) {
+  qjs::Value v(&ctx);
+
+  v = true;
+  EXPECT_TRUE(v.IsBool());
+}
+
+TEST_F(ValueTest, IsError) {
+  qjs::Value v(&ctx);
+
+  // v = true;
+  // EXPECT_TRUE(v.IsBool());
+}
+
+TEST_F(ValueTest, IsArray) {
+  qjs::Value v(&ctx);
+
+  v = std::vector<std::string>{"1", "b"};
+  EXPECT_TRUE(v.IsArray());
+}
+
+TEST_F(ValueTest, IsNumber) {
+  qjs::Value v(&ctx);
+
+  v = 345;
+  EXPECT_TRUE(v.IsNumber());
+}
+
+TEST_F(ValueTest, IsString) {
+  qjs::Value v(&ctx);
+
+  v = "";
+  EXPECT_TRUE(v.IsString());
+}
+
+TEST_F(ValueTest, IsBigInt) {
+  qjs::Value v(&ctx);
+
+  // v = 999;
+  // EXPECT_TRUE(v.IsBigInt());
+}
+
+TEST_F(ValueTest, IsObject) {
+  qjs::Value v(&ctx);
+
+  // v = true;
+  // EXPECT_TRUE(v.IsBool());
+}
+
+TEST_F(ValueTest, IsSymbol) {
+  qjs::Value v(&ctx);
+
+  // v = true;
+  // EXPECT_TRUE(v.IsBool());
+}
+
+TEST_F(ValueTest, IsBigFloat) {
+  qjs::Value v(&ctx);
+
+  // v = true;
+  // EXPECT_TRUE(v.IsBool());
+}
+
+static int32_t c_fun() { return 0; }
+
+TEST_F(ValueTest, IsFunction) {
+  qjs::Value v(&ctx);
+
+  v = c_fun;
+  EXPECT_TRUE(v.IsFunction());
+
+  v.SetLambda<int(int)>([](int) { return 0; });
+  EXPECT_TRUE(v.IsFunction());
+}
