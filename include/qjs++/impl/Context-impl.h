@@ -1,6 +1,6 @@
 #pragma once
 
-#include "qjs++/impl/QJS++Impl.h"
+#include "qjs++/impl/Context-decl.h"
 
 namespace qjs {
 inline Context::Context(Runtime &rumtime) : ctx_(JS_NewContext(rumtime.rt_)) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "qjs++/impl/QJS++Impl.h"
+#include "qjs++/impl/Runtime-decl.h"
 #include "quickjs/quickjs-libc.h"
 
 namespace qjs {

@@ -1,54 +1,12 @@
 #pragma once
 
+#include "qjs++/impl/Context-decl.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
-#include "quickjs/quickjs.h"
 #include <functional>
-#include <unordered_map>
+#include <type_traits>
+#include <utility>
 
 namespace qjs {
-class Runtime {
-public:
-  Runtime();
-
-  ~Runtime();
-
-  bool IsJobPending() const;
-
-private:
-  JSRuntime *rt_ = nullptr;
-
-  friend class Context;
-};
-
-class Context {
-public:
-  Context(Runtime &rumtime);
-
-  ~Context();
-
-  // Value Global();
-
-  // Value Eval(const std::string &script);
-
-  // Module &Module(const std::string &name);
-
-  // const Module &Module(const std::string &name) const;
-
-  // template <typename T> Class<T> Class(const std::string &name);
-
-  JSContext *Get() const;
-
-private:
-  JSContext *ctx_ = nullptr;
-
-  /**
-   * @brief 所有我们注册进来的module
-   */
-  // std::unordered_map<std::string, Module> modules_;
-
-  // template <typename T> friend class Class;
-  // friend class Module;
-};
 
 class Value {
 public:
@@ -125,5 +83,4 @@ private:
 
   friend class Context;
 };
-
 } // namespace qjs
