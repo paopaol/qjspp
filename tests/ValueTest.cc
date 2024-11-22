@@ -84,11 +84,21 @@ TEST_F(ValueTest, AssginVector) {
   EXPECT_EQ(v.As<std::vector<int64_t>>(), std::vector<int64_t>({1, 2, 3}));
 }
 
-TEST_F(ValueTest, IsNull) { qjs::Value v(&ctx); }
+TEST_F(ValueTest, IsNull) {
+  qjs::Value v(&ctx, JS_NULL);
+  EXPECT_TRUE(v.IsNull());
+}
 
-TEST_F(ValueTest, IsUndefined) { qjs::Value v(&ctx); }
+TEST_F(ValueTest, IsUndefined) {
+  qjs::Value v(&ctx, JS_UNDEFINED);
 
-TEST_F(ValueTest, IsException) { qjs::Value v(&ctx); }
+  EXPECT_TRUE(v.IsUndefined());
+}
+
+TEST_F(ValueTest, IsException) {
+  qjs::Value v(&ctx, JS_EXCEPTION);
+  EXPECT_TRUE(v.IsException());
+}
 
 TEST_F(ValueTest, IsBool) {
   qjs::Value v(&ctx);
