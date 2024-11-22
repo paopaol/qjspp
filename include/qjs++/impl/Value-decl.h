@@ -8,6 +8,8 @@
 
 namespace qjs {
 
+class ValueProperyProxy {};
+
 class Value {
 public:
   Value();
@@ -82,7 +84,6 @@ private:
   void FreeInternalValue();
 
   Context *ctx_ = nullptr;
-  JSValue parent_;
   JSValue v_;
 
   friend class Context;

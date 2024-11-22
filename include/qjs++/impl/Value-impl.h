@@ -9,11 +9,9 @@
 #include "qjs++/impl/traits/VectorValueTraits.h"
 
 namespace qjs {
-inline Value::Value()
-    : ctx_(nullptr), parent_(JS_UNDEFINED), v_(JS_UNDEFINED) {}
+inline Value::Value() : ctx_(nullptr), v_(JS_UNDEFINED) {}
 
-inline Value::Value(Context *ctx)
-    : ctx_(ctx), parent_(JS_UNDEFINED), v_(JS_UNDEFINED) {}
+inline Value::Value(Context *ctx) : ctx_(ctx), v_(JS_UNDEFINED) {}
 
 inline Value::Value(Context *ctx, JSValue v) : ctx_(ctx), v_(v) {}
 

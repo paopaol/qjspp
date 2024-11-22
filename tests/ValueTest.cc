@@ -2,6 +2,10 @@
 
 #include "gtest/gtest.h"
 
+static int32_t c_fun(int32_t v) { return v + 1; }
+
+static void void_c_fun(int32_t v) {}
+
 class ValueTest : public testing::Test {
 public:
   ValueTest() : ctx(rt) {}
@@ -149,8 +153,6 @@ TEST_F(ValueTest, IsBigFloat) {
   // EXPECT_TRUE(v.IsBool());
 }
 
-static int32_t c_fun() { return 0; }
-
 TEST_F(ValueTest, IsFunction) {
   qjs::Value v(&ctx);
 
@@ -166,4 +168,44 @@ TEST_F(ValueTest, CallLambda) {
 
   v.SetLambda<int(int)>([](int var) { return var + 1; });
   EXPECT_EQ(v(5).As<int32_t>(), 6);
+}
+
+TEST_F(ValueTest, CallCFunction) {
+  qjs::Value v(&ctx);
+
+  v.SetLambda<int(int)>(c_fun);
+  EXPECT_EQ(v(5).As<int32_t>(), 6);
+
+  v = c_fun;
+  EXPECT_EQ(v(5).As<int32_t>(), 6);
+}
+
+TEST_F(ValueTest, CallStationClassMethod) {
+  class Type {
+  public:
+    static uint32_t f(uint32_t v) { return v + 1; }
+  };
+
+  qjs::Value v(&ctx);
+
+  v = Type::f;
+  EXPECT_EQ(v(5).As<int32_t>(), 6);
+}
+
+TEST_F(ValueTest, CallVoidLambdaFunction) {
+  qjs::Value v(&ctx);
+
+  int32_t var = 0;
+  v.SetLambda<void(int)>([&](int a) { var = a + 1; });
+  v(5);
+  EXPECT_EQ(var, 6);
+}
+
+TEST_F(ValueTest, CallVoidCFunction) {
+  qjs::Value v(&ctx);
+
+  v = void_c_fun;
+
+  int32_t out = 0;
+  v(5);
 }
