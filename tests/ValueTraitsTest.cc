@@ -148,3 +148,22 @@ TEST_F(ValueTraitsTest, Vector) {
     JS_FreeValue(ctx, v);
   }
 }
+
+TEST_F(ValueTraitsTest, Pointer) {
+  int32_t v = 123;
+  JSValue jv = ValueTraits<int32_t *>::Wrap(ctx, &v);
+  auto *cv = ValueTraits<int32_t *>::Unwrap(ctx, jv);
+
+  EXPECT_EQ(123, *cv);
+  JS_FreeValue(ctx, jv);
+  delete cv;
+}
+
+TEST_F(ValueTraitsTest, SharedPointer) {
+  auto v = std::make_shared<int32_t>(123);
+  JSValue jv = ValueTraits<std::shared_ptr<int32_t>>::Wrap(ctx, v);
+  auto cv = ValueTraits<std::shared_ptr<int32_t>>::Unwrap(ctx, jv);
+
+  EXPECT_EQ(123, *cv);
+  JS_FreeValue(ctx, jv);
+}

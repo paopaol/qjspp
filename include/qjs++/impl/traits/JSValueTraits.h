@@ -2,6 +2,7 @@
 
 #include "qjs++/impl/Exception.h"
 #include "quickjs/quickjs.h"
+#include <memory>
 
 template <typename T, typename = void> struct ValueTraits {
   static T Unwrap(JSContext *ctx, JSValueConst v) = delete;
@@ -22,6 +23,30 @@ template <> struct ValueTraits<JSValue> {
 template <> struct ValueTraits<void> {
   static JSValue Unwrap(JSContext *ctx, JSValueConst v) {
     throw QJSException(ctx);
+  }
+};
+
+template <typename T> struct ValueTraits<T *> {
+  static T *Unwrap(JSContext *ctx, JSValueConst v) {
+    return new T(ValueTraits<T>::Unwrap(ctx, v));
+  }
+
+  static JSValue Wrap(JSContext *ctx, const T *v) {
+    return ValueTraits<T>::Wrap(ctx, *v);
+  }
+};
+
+template <typename T> struct ValueTraits<std::shared_ptr<T>> {
+  static std::shared_ptr<T> Unwrap(JSContext *ctx, JSValueConst v) {
+    if (JS_IsNull(v) || JS_IsUndefined(v)) {
+      return nullptr;
+    }
+
+    return std::make_shared<T>(ValueTraits<T>::Unwrap(ctx, v));
+  }
+
+  static JSValue Wrap(JSContext *ctx, const std::shared_ptr<T> &v) {
+    return v ? ValueTraits<T>::Wrap(ctx, *v) : JS_NULL;
   }
 };
 
