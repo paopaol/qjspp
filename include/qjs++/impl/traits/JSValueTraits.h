@@ -50,4 +50,18 @@ template <typename T> struct ValueTraits<std::shared_ptr<T>> {
   }
 };
 
+template <typename T> struct ValueTraits<std::unique_ptr<T>> {
+  static std::unique_ptr<T> Unwrap(JSContext *ctx, JSValueConst v) {
+    if (JS_IsNull(v) || JS_IsUndefined(v)) {
+      return nullptr;
+    }
+
+    return std::unique_ptr<T>(new T(ValueTraits<T>::Unwrap(ctx, v)));
+  }
+
+  static JSValue Wrap(JSContext *ctx, const std::unique_ptr<T> &v) {
+    return v ? ValueTraits<T>::Wrap(ctx, *v) : JS_NULL;
+  }
+};
+
 template <typename T> struct QJSFunction;

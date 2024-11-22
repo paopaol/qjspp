@@ -195,3 +195,12 @@ TEST_F(ValueTraitsTest, SharedPointer) {
   EXPECT_EQ(123, *cv);
   JS_FreeValue(ctx, jv);
 }
+
+TEST_F(ValueTraitsTest, UniquePointer) {
+  auto v = std::make_unique<int32_t>(123);
+  JSValue jv = ValueTraits<std::unique_ptr<int32_t>>::Wrap(ctx, v);
+  auto cv = ValueTraits<std::unique_ptr<int32_t>>::Unwrap(ctx, jv);
+
+  EXPECT_EQ(123, *cv);
+  JS_FreeValue(ctx, jv);
+}

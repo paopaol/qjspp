@@ -190,7 +190,7 @@ TEST_F(ValueTest, CallCFunction) {
   EXPECT_EQ(v(5).As<int32_t>(), 6);
 }
 
-TEST_F(ValueTest, CallStationClassMethod) {
+TEST_F(ValueTest, CallStaticClassMethod) {
   class Type {
   public:
     static uint32_t f(uint32_t v) { return v + 1; }
