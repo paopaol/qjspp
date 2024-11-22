@@ -149,6 +149,34 @@ TEST_F(ValueTraitsTest, Vector) {
   }
 }
 
+TEST_F(ValueTraitsTest, Array) {
+  {
+    using ArrayType2 = std::array<uint32_t, 2>;
+    using ArrayType3 = std::array<uint32_t, 3>;
+    ArrayType3 vec{1, 2, 3};
+
+    JSValue v = ValueTraits<ArrayType3>::Wrap(ctx, vec);
+    EXPECT_EQ(ValueTraits<ArrayType3>::Unwrap(ctx, v), ArrayType3({1, 2, 3}));
+    EXPECT_EQ(ValueTraits<ArrayType2>::Unwrap(ctx, v), ArrayType2({1, 2}));
+    JS_FreeValue(ctx, v);
+  }
+}
+
+TEST_F(ValueTraitsTest, Queue) {
+  {
+    using Queue = std::deque<uint32_t>;
+
+    Queue q;
+
+    q.push_back(1);
+    q.push_back(2);
+
+    JSValue v = ValueTraits<Queue>::Wrap(ctx, q);
+    EXPECT_EQ(ValueTraits<Queue>::Unwrap(ctx, v), q);
+    JS_FreeValue(ctx, v);
+  }
+}
+
 TEST_F(ValueTraitsTest, Pointer) {
   int32_t v = 123;
   JSValue jv = ValueTraits<int32_t *>::Wrap(ctx, &v);
