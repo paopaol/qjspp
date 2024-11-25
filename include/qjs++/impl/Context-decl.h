@@ -1,6 +1,7 @@
 #pragma once
 
 #include "qjs++/impl/Runtime.h"
+#include "qjs++/impl/Value-decl.h"
 
 namespace qjs {
 class Context {
@@ -9,7 +10,7 @@ public:
 
   ~Context();
 
-  // Value Global();
+  Value Global();
 
   // Value Eval(const std::string &script);
 

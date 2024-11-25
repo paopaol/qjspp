@@ -219,3 +219,22 @@ TEST_F(ValueTest, CallVoidCFunction) {
   int32_t out = 0;
   v(5);
 }
+
+TEST_F(ValueTest, SetProperty) {
+  ctx.Global()
+      .SetProperty("int", 123)
+      .SetProperty("float", 3.f)
+      .SetProperty("string", "name")
+      .SetProperty("list", std::vector<std::string>({"1", "2", "3"}))
+      .SetProperty("c_function", c_fun)
+      .SetProperty("labmda",
+                   std::function<int32_t(int)>([](int v) { return v + 1; }));
+
+  EXPECT_EQ(ctx.Global()["int"].As<int64_t>(), 123);
+  EXPECT_FLOAT_EQ(ctx.Global()["float"].As<float>(), 3.f);
+  EXPECT_EQ(ctx.Global()["string"].As<std::string>(), "name");
+  EXPECT_EQ(ctx.Global()["list"].As<std::vector<std::string>>(),
+            std::vector<std::string>({"1", "2", "3"}));
+  EXPECT_EQ(ctx.Global()["c_function"](5).As<int32_t>(), 6);
+  EXPECT_EQ(ctx.Global()["labmda"](5).As<int32_t>(), 6);
+}

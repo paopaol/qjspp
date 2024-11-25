@@ -1,6 +1,5 @@
 #pragma once
 
-#include "qjs++/impl/Context-decl.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include <functional>
 #include <type_traits>
@@ -8,8 +7,7 @@
 
 namespace qjs {
 
-class ValueProperyProxy {};
-
+class Context;
 class Value {
 public:
   Value();
@@ -21,8 +19,7 @@ public:
   template <typename T, typename = typename std::enable_if<
                             !std::is_same<JSValue, T>::value &&
                             !std::is_same<Value, T>::value>::type>
-  Value(Context *ctx, T v)
-      : ctx_(ctx), v_(ValueTraits<T>::Wrap(ctx->Get(), std::move(v))) {}
+  Value(Context *ctx, T v);
 
   ~Value();
 
@@ -39,14 +36,33 @@ public:
                             !std::is_same<Value, T>::value>::type>
   Value &operator=(T &&v);
 
+  /**
+   * @brief 普通函数绑定
+   */
   template <typename R, typename... Args> Value &operator=(R (*f)(Args...));
 
+  /**
+   * @brief std::function 绑定
+   */
   template <typename R, typename... Args>
   Value &operator=(std::function<R(Args...)> f);
 
+  /**
+   * @brief lambda std::function绑定
+   */
   template <typename F> Value &SetLambda(std::function<F> f);
 
+  /**
+   * @brief 如果Value是一个函数。允许调用这个函数
+   */
   template <typename... Args> Value operator()(Args &&...args);
+
+  template <typename T> Value &SetProperty(const std::string &name, T &&v);
+
+  /**
+   * @brief 返回属性
+   */
+  Value operator[](const std::string &name) const;
 
   bool IsNull() const;
 

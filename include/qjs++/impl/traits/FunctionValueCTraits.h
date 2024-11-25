@@ -15,13 +15,11 @@ template <typename R, typename... Args> struct QJSFunction<R (*)(Args...)> {
 
   static JSValue Invoke(JSContext *ctx, JSValueConst this_val, int argc,
                         JSValueConst *argv, int magic, void *opaque) {
-    auto F = reinterpret_cast<R (*)(Args...)>(opaque);
+    auto *f = reinterpret_cast<R (*)(Args...)>(opaque);
 
     return ValueTraits<R>::Wrap(ctx,
-                                InvokeNative<R, Args...>(ctx, F, argc, argv));
+                                InvokeNative<R, Args...>(ctx, f, argc, argv));
   };
-
-  Func f;
 };
 
 template <typename... Args> struct QJSFunction<void (*)(Args...)> {
@@ -29,8 +27,8 @@ template <typename... Args> struct QJSFunction<void (*)(Args...)> {
 
   static JSValue Invoke(JSContext *ctx, JSValueConst this_val, int argc,
                         JSValueConst *argv, int magic, void *opaque) {
-    auto F = reinterpret_cast<Func>(opaque);
-    InvokeNative<void, Args...>(ctx, F, argc, argv);
+    auto *f = reinterpret_cast<Func>(opaque);
+    InvokeNative<void, Args...>(ctx, f, argc, argv);
 
     return JS_NULL;
   };

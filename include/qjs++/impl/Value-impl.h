@@ -1,5 +1,6 @@
 #pragma once
 
+#include "qjs++/impl/Context-decl.h"
 #include "qjs++/impl/Value-decl.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
 
@@ -8,18 +9,39 @@ inline Value::Value() : ctx_(nullptr), v_(JS_UNDEFINED) {}
 
 inline Value::Value(Context *ctx) : ctx_(ctx), v_(JS_UNDEFINED) {}
 
-inline Value::Value(Context *ctx, JSValue v) : ctx_(ctx), v_(v) {}
+inline Value::Value(Context *ctx, JSValue v) : ctx_(ctx), v_(std::move(v)) {}
+
+template <typename T, typename U>
+inline Value::Value(Context *ctx, T v)
+    : ctx_(ctx), v_(ValueTraits<T>::Wrap(ctx->Get(), std::move(v))) {}
 
 inline Value::~Value() { FreeInternalValue(); }
 
 template <typename... Args> Value Value::operator()(Args &&...args) {
   JSValue argv[] = {
       ValueTraits<Args>::Wrap(ctx_->Get(), std::forward<Args>(args))...};
-  auto rt = JS_Call(ctx_->Get(), v_, JS_UNDEFINED, sizeof...(Args), argv);
-
-  return Value(ctx_, rt);
+  return Value(ctx_,
+               JS_Call(ctx_->Get(), v_, JS_UNDEFINED, sizeof...(Args), argv));
 }
 
+template <typename T>
+inline Value &Value::SetProperty(const std::string &name, T &&v) {
+  Value value(ctx_);
+
+  value = std::forward<T>(v);
+
+  JS_SetPropertyStr(ctx_->Get(), v_, name.c_str(),
+                    JS_DupValue(ctx_->Get(), value.Raw()));
+  return *this;
+}
+
+inline Value Value::operator[](const std::string &name) const {
+  return Value(ctx_, JS_GetPropertyStr(ctx_->Get(), v_, name.c_str()));
+}
+
+/**
+ * @brief 添加并返回属性
+ */
 inline bool Value::IsNull() const { return JS_IsNull(v_); }
 
 inline bool Value::IsUndefined() const { return JS_IsUndefined(v_); }
@@ -70,6 +92,14 @@ template <typename R, typename... Args>
 Value &Value::operator=(R (*f)(Args...)) {
   FreeInternalValue();
   v_ = ValueTraits<QJSFunction<R (*)(Args...)>>::Wrap(ctx_->Get(), f);
+  return *this;
+}
+
+template <typename R, typename... Args>
+Value &Value::operator=(std::function<R(Args...)> f) {
+  FreeInternalValue();
+  v_ = ValueTraits<QJSFunction<std::function<R(Args...)>>>::Wrap(ctx_->Get(),
+                                                                 std::move(f));
   return *this;
 }
 

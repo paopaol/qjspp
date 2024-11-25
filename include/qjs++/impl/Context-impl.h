@@ -12,8 +12,7 @@ inline Context::~Context() {
   ctx_ = nullptr;
 }
 
-// inline Value Context::Global() { return Value(ctx_,
-// JS_GetGlobalObject(ctx_)); }
+inline Value Context::Global() { return Value(this, JS_GetGlobalObject(ctx_)); }
 
 // template <typename T> Class<T> Context::Class(const std::string &name) {
 //   Class<T> cls(this, name);

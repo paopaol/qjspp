@@ -9,12 +9,11 @@
 
 template <> struct ValueTraits<std::string> {
   static std::string Unwrap(JSContext *ctx, JSValueConst v) {
-    size_t len;
-    const char *ptr = JS_ToCStringLen(ctx, &len, v);
+    const char *ptr = JS_ToCString(ctx, v);
     if (!ptr)
       throw QJSException(ctx);
 
-    std::string s(ptr, len);
+    std::string s(ptr);
     JS_FreeCString(ctx, ptr);
     return s;
   }
