@@ -267,6 +267,18 @@ TEST_F(ValueTest, AssignProperty) {
   EXPECT_EQ(v["labmda"](5).As<int32_t>(), 6);
 }
 
+TEST_F(ValueTest, ToJsonString) {
+  qjs::Value v = ctx.NewObject();
+
+  v["int"] = 123;
+  v["string"] = "123";
+  v["float"] = 3.3f;
+  v["bool"] = true;
+  v["func"] = puts;
+
+  puts(v.ToJsonString().c_str());
+}
+
 TEST_F(ValueTest, BindCNativeFunction) {
   qjs::Value v(&ctx);
 

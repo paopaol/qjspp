@@ -3,6 +3,8 @@
 #include "qjs++/impl/Context-decl.h"
 #include "qjs++/impl/Value-decl.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
+#include "qjs++/impl/traits/StringValueTraits.h"
+#include <cassert>
 
 namespace qjs {
 
@@ -99,6 +101,13 @@ inline bool Value::IsSymbol() const { return JS_IsSymbol(v_); }
 inline bool Value::IsBigFloat() const { return JS_IsBigFloat(v_); }
 
 inline bool Value::IsFunction() const { return JS_IsFunction(ctx_->Get(), v_); }
+
+inline std::string Value::ToJsonString() const {
+  assert(ctx_->Get());
+  Value v(ctx_, JS_JSONStringify(ctx_->Get(), v_, JS_UNDEFINED, JS_UNDEFINED));
+
+  return v.As<std::string>();
+}
 
 template <typename T> T Value::As() const {
   return ValueTraits<T>::Unwrap(ctx_->Get(), v_);

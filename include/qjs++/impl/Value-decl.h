@@ -100,6 +100,8 @@ public:
 
   bool IsFunction() const;
 
+  std::string ToJsonString() const;
+
   template <typename T> T As() const;
 
   const JSValue &Raw() const;
