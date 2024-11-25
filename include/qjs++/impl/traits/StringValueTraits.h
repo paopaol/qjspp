@@ -25,16 +25,49 @@ template <> struct ValueTraits<std::string> {
   }
 };
 
+struct JSString {
+  JSContext *ctx = nullptr;
+  const char *data = nullptr;
+  std::size_t len = 0;
+
+  JSString(JSContext *ctx, const char *ptr, std::size_t len_)
+      : ctx(ctx), data(ptr), len(len_) {}
+
+  JSString(const JSString &other) = delete;
+
+  JSString &operator=(const JSString &other) = delete;
+
+  JSString(JSString &&other) {
+    Free();
+    ctx = other.ctx;
+    data = other.data;
+    len = other.len;
+
+    other.ctx = nullptr;
+    other.data = nullptr;
+    other.len = 0;
+  }
+
+  operator const char *() const { return data; }
+
+  ~JSString() { Free(); }
+
+private:
+  void Free() {
+    if (ctx) {
+      JS_FreeCString(ctx, data);
+    }
+  }
+};
+
 template <> struct ValueTraits<const char *> {
-  static std::string Unwrap(JSContext *ctx, JSValueConst v) {
+  static JSString Unwrap(JSContext *ctx, JSValueConst v) {
     size_t len;
     const char *ptr = JS_ToCStringLen(ctx, &len, v);
-    if (!ptr)
+    if (!ptr) {
       throw QJSException(ctx);
-
-    std::string s(ptr, len);
-    JS_FreeCString(ctx, ptr);
-    return s;
+    }
+    return JSString(ctx, ptr, len);
   }
 
   static JSValue Wrap(JSContext *ctx, const char *v) {
@@ -43,15 +76,8 @@ template <> struct ValueTraits<const char *> {
 };
 
 template <> struct ValueTraits<char *> {
-  static std::string Unwrap(JSContext *ctx, JSValueConst v) {
-    size_t len;
-    const char *ptr = JS_ToCStringLen(ctx, &len, v);
-    if (!ptr)
-      throw QJSException(ctx);
-
-    std::string s(ptr, len);
-    JS_FreeCString(ctx, ptr);
-    return s;
+  static JSString Unwrap(JSContext *ctx, JSValueConst v) {
+    return ValueTraits<const char *>::Unwrap(ctx, v);
   }
 
   static JSValue Wrap(JSContext *ctx, char *v) {
@@ -60,15 +86,8 @@ template <> struct ValueTraits<char *> {
 };
 
 template <std::size_t N> struct ValueTraits<char (&)[N]> {
-  static std::string Unwrap(JSContext *ctx, JSValueConst v) {
-    size_t len;
-    const char *ptr = JS_ToCStringLen(ctx, &len, v);
-    if (!ptr)
-      throw QJSException(ctx);
-
-    std::string s(ptr, len);
-    JS_FreeCString(ctx, ptr);
-    return s;
+  static JSString Unwrap(JSContext *ctx, JSValueConst v) {
+    return ValueTraits<const char *>::Unwrap(ctx, v);
   }
 
   static JSValue Wrap(JSContext *ctx, char *v) {
@@ -77,15 +96,8 @@ template <std::size_t N> struct ValueTraits<char (&)[N]> {
 };
 
 template <std::size_t N> struct ValueTraits<const char (&)[N]> {
-  static std::string Unwrap(JSContext *ctx, JSValueConst v) {
-    size_t len;
-    const char *ptr = JS_ToCStringLen(ctx, &len, v);
-    if (!ptr)
-      throw QJSException(ctx);
-
-    std::string s(ptr, len);
-    JS_FreeCString(ctx, ptr);
-    return s;
+  static JSString Unwrap(JSContext *ctx, JSValueConst v) {
+    return ValueTraits<const char *>::Unwrap(ctx, v);
   }
 
   static JSValue Wrap(JSContext *ctx, const char *v) {

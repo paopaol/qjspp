@@ -4,6 +4,8 @@
 
 static int32_t c_fun(int32_t v) { return v + 1; }
 
+static int32_t c_string_fun(const char *v) { return std::strlen(v); }
+
 static void void_c_fun(int32_t v) {}
 
 class ValueTest : public testing::Test {
@@ -263,4 +265,14 @@ TEST_F(ValueTest, AssignProperty) {
             std::vector<std::string>({"1", "2", "3"}));
   EXPECT_EQ(v["c_function"](5).As<int32_t>(), 6);
   EXPECT_EQ(v["labmda"](5).As<int32_t>(), 6);
+}
+
+TEST_F(ValueTest, BindCNativeFunction) {
+  qjs::Value v(&ctx);
+
+  v = puts;
+  v(std::string("name").c_str());
+
+  v = strlen;
+  EXPECT_EQ(v("abc").As<int32_t>(), 3);
 }

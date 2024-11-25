@@ -36,10 +36,16 @@ inline Value::Value(Context *ctx, T v)
 inline Value::~Value() { FreeInternalValue(); }
 
 template <typename... Args> Value Value::operator()(Args &&...args) {
-  JSValue argv[] = {
+  std::array<JSValue, sizeof...(Args)> argv = {
       ValueTraits<Args>::Wrap(ctx_->Get(), std::forward<Args>(args))...};
-  return Value(ctx_,
-               JS_Call(ctx_->Get(), v_, JS_UNDEFINED, sizeof...(Args), argv));
+  auto ret = Value(ctx_, JS_Call(ctx_->Get(), v_, JS_UNDEFINED, sizeof...(Args),
+                                 argv.data()));
+
+  for (const auto &e : argv) {
+    JS_FreeValue(ctx_->Get(), e);
+  }
+
+  return ret;
 }
 
 template <typename T>
