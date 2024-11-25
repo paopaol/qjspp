@@ -14,6 +14,8 @@ inline Context::~Context() {
 
 inline Value Context::Global() { return Value(this, JS_GetGlobalObject(ctx_)); }
 
+inline Value Context::NewObject() { return Value(this, JS_NewObject(ctx_)); }
+
 // template <typename T> Class<T> Context::Class(const std::string &name) {
 //   Class<T> cls(this, name);
 //   return cls;

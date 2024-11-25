@@ -238,3 +238,28 @@ TEST_F(ValueTest, SetProperty) {
   EXPECT_EQ(ctx.Global()["c_function"](5).As<int32_t>(), 6);
   EXPECT_EQ(ctx.Global()["labmda"](5).As<int32_t>(), 6);
 }
+
+TEST_F(ValueTest, AssignProperty) {
+  auto v = ctx.NewObject();
+
+  v["int"] = 123;
+  EXPECT_TRUE(v["int"].IsNumber());
+
+  v["int"] = "123";
+  EXPECT_TRUE(v["int"].IsString());
+
+  v["float"] = 3.f;
+  v["int"] = 123;
+  v["string"] = "name";
+  v["list"] = std::vector<std::string>({"1", "2", "3"});
+  v["c_function"] = c_fun;
+  v["labmda"] = std::function<int32_t(int)>([](int v) { return v + 1; });
+
+  EXPECT_EQ(v["int"].As<int64_t>(), 123);
+  EXPECT_FLOAT_EQ(v["float"].As<float>(), 3.f);
+  EXPECT_EQ(v["string"].As<std::string>(), "name");
+  EXPECT_EQ(v["list"].As<std::vector<std::string>>(),
+            std::vector<std::string>({"1", "2", "3"}));
+  EXPECT_EQ(v["c_function"](5).As<int32_t>(), 6);
+  EXPECT_EQ(v["labmda"](5).As<int32_t>(), 6);
+}

@@ -4,6 +4,10 @@
 #include "quickjs/quickjs.h"
 #include <memory>
 
+namespace qjs {
+
+template <typename T> struct QJSFunction;
+
 template <typename T, typename = void> struct ValueTraits {
   static T Unwrap(JSContext *ctx, JSValueConst v) = delete;
 
@@ -63,5 +67,4 @@ template <typename T> struct ValueTraits<std::unique_ptr<T>> {
     return v ? ValueTraits<T>::Wrap(ctx, *v) : JS_NULL;
   }
 };
-
-template <typename T> struct QJSFunction;
+} // namespace qjs

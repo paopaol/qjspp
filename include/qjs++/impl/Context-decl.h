@@ -12,6 +12,8 @@ public:
 
   Value Global();
 
+  Value NewObject();
+
   // Value Eval(const std::string &script);
 
   // Module &Module(const std::string &name);

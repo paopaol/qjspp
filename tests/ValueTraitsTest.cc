@@ -5,6 +5,8 @@
 #include "qjs++/impl/traits/VectorValueTraits.h"
 #include "gtest/gtest.h"
 
+namespace qjs {
+
 class ValueTraitsTest : public testing::Test {
 public:
   void SetUp() override {
@@ -204,3 +206,4 @@ TEST_F(ValueTraitsTest, UniquePointer) {
   EXPECT_EQ(123, *cv);
   JS_FreeValue(ctx, jv);
 }
+} // namespace qjs

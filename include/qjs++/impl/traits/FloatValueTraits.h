@@ -4,6 +4,8 @@
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include <type_traits>
 
+namespace qjs {
+
 template <typename T>
 static constexpr bool IsFloatPoint = std::is_floating_point<T>::value;
 
@@ -20,3 +22,4 @@ struct ValueTraits<T, typename std::enable_if<IsFloatPoint<T>>::type> {
 
   static JSValue Wrap(JSContext *ctx, T v) { return JS_NewFloat64(ctx, v); }
 };
+} // namespace qjs

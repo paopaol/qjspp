@@ -5,6 +5,8 @@
 #include "quickjs/quickjs.h"
 #include <cassert>
 
+namespace qjs {
+
 template <typename T> struct QJSFunction;
 
 /**
@@ -48,3 +50,4 @@ struct ValueTraits<QJSFunction<R (*)(Args...)>> {
                           reinterpret_cast<void *>(f), nullptr);
   }
 };
+} // namespace qjs

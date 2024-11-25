@@ -1,13 +1,14 @@
 #pragma once
 
-#include "qjs++/impl/traits/JSValueTraits.h"
+#include "quickjs/quickjs.h"
 #include <functional>
 #include <type_traits>
-#include <utility>
 
 namespace qjs {
 
 class Context;
+class PropertyProxy;
+
 class Value {
 public:
   Value();
@@ -59,10 +60,19 @@ public:
 
   template <typename T> Value &SetProperty(const std::string &name, T &&v);
 
+  Value Property(const std::string &name) const;
+
   /**
    * @brief 返回属性
    */
   Value operator[](const std::string &name) const;
+
+  /**
+   * @brief return property of name,
+   *
+   * if the name property not exists, create it
+   */
+  PropertyProxy operator[](const std::string &name);
 
   bool IsNull() const;
 
@@ -94,6 +104,16 @@ public:
 
   const JSValue &Raw() const;
 
+  template <typename T, typename = typename std::enable_if<
+                            !std::is_same<JSValue, T>::value &&
+                            !std::is_same<Value, T>::value>::type>
+  void Assgin(T &&v);
+
+  template <typename R, typename... Args> void Assgin(R (*f)(Args...));
+
+  template <typename R, typename... Args>
+  void Assgin(std::function<R(Args...)> f);
+
 private:
   void Steal(Value &&other);
 
@@ -104,4 +124,23 @@ private:
 
   friend class Context;
 };
+
+class PropertyProxy : public Value {
+public:
+  PropertyProxy(Context *ctx, Value *v, const std::string &name);
+
+  PropertyProxy(const PropertyProxy &) = delete;
+
+  PropertyProxy &operator=(const PropertyProxy &) = delete;
+
+  PropertyProxy(PropertyProxy &&other);
+
+  template <typename U> PropertyProxy &operator=(U &&v);
+
+private:
+  Value *object_ = nullptr;
+  Context *ctx_ = nullptr;
+  std::string name_;
+};
+
 } // namespace qjs

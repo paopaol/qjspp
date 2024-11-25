@@ -5,6 +5,8 @@
 #include "quickjs/quickjs.h"
 #include <cassert>
 
+namespace qjs {
+
 /**
  * @brief mutable none static class::method
  */
@@ -82,3 +84,4 @@ struct ValueTraits<QJSFunction<R (T::*)(Args...) const>> {
                           QJSFunction<Func>::Finalizer);
   }
 };
+} // namespace qjs

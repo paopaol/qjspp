@@ -6,6 +6,8 @@
 #include <deque>
 #include <vector>
 
+namespace qjs {
+
 template <typename T> struct ArrayHelper {
   static void Push(JSContext *ctx, JSValue array, uint32_t index, T v) {
     JS_SetPropertyUint32(ctx, array, index, ValueTraits<T>::Wrap(ctx, v));
@@ -90,3 +92,4 @@ template <typename T, std::size_t N> struct ValueTraits<std::array<T, N>> {
     return ArrayHelper<T>::New(ctx, v);
   }
 };
+} // namespace qjs

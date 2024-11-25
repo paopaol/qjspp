@@ -5,6 +5,8 @@
 #include "quickjs/quickjs.h"
 #include <type_traits>
 
+namespace qjs {
+
 template <typename T>
 static constexpr auto IsSmallUnsignedInteger =
     std::is_same<T, uint32_t>::value || std::is_same<T, uint16_t>::value;
@@ -71,3 +73,4 @@ template <> struct ValueTraits<bool> {
 
   static JSValue Wrap(JSContext *ctx, bool v) { return JS_NewBool(ctx, v); }
 };
+} // namespace qjs

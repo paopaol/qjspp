@@ -7,6 +7,8 @@
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include "quickjs/quickjs.h"
 
+namespace qjs {
+
 template <> struct ValueTraits<std::string> {
   static std::string Unwrap(JSContext *ctx, JSValueConst v) {
     const char *ptr = JS_ToCString(ctx, v);
@@ -90,3 +92,4 @@ template <std::size_t N> struct ValueTraits<const char (&)[N]> {
     return JS_NewStringLen(ctx, v, std::strlen(v));
   }
 };
+} // namespace qjs

@@ -5,6 +5,8 @@
 #include "quickjs/quickjs.h"
 #include <cassert>
 
+namespace qjs {
+
 /**
  * @brief lambda
  */
@@ -68,3 +70,4 @@ struct ValueTraits<QJSFunction<std::function<R(Args...)>>> {
                           QJSFunction<Func>::Finalizer);
   }
 };
+} // namespace qjs

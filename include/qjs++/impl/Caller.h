@@ -6,6 +6,8 @@
 
 #include "traits/JSValueTraits.h"
 
+namespace qjs {
+
 /**
  * @brief decode JSValues to tuple
  */
@@ -33,3 +35,4 @@ R InvokeNative(JSContext *ctx, Callable &&call, int argc, JSValueConst *argv) {
       JSArrayUnwrap<typename std::decay<Args>::type...>(ctx, argc, argv);
   return absl::apply(std::forward<Callable>(call), std::move(args));
 }
+} // namespace qjs
