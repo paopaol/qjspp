@@ -256,6 +256,7 @@ TEST_F(ValueTest, AssignProperty) {
   v["labmda"] = std::function<int32_t(int)>([](int v) { return v + 1; });
 
   EXPECT_EQ(v["int"].As<int64_t>(), 123);
+  EXPECT_EQ(v["int"].As<std::string>(), "123");
   EXPECT_FLOAT_EQ(v["float"].As<float>(), 3.f);
   EXPECT_EQ(v["string"].As<std::string>(), "name");
   EXPECT_EQ(v["list"].As<std::vector<std::string>>(),
