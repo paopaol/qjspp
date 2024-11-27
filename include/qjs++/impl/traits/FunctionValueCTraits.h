@@ -17,7 +17,7 @@ template <typename R, typename... Args> struct QJSFunction<R (*)(Args...)> {
 
   static JSValue Invoke(JSContext *ctx, JSValueConst this_val, int argc,
                         JSValueConst *argv, int magic, void *opaque) {
-    auto *f = reinterpret_cast<R (*)(Args...)>(opaque);
+    auto *f = reinterpret_cast<Func>(opaque);
 
     return ValueTraits<R>::Wrap(ctx,
                                 InvokeNative<R, Args...>(ctx, f, argc, argv));
@@ -50,4 +50,5 @@ struct ValueTraits<QJSFunction<R (*)(Args...)>> {
                           reinterpret_cast<void *>(f), nullptr);
   }
 };
+
 } // namespace qjs
