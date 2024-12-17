@@ -5,7 +5,7 @@
 
 #include "qjs++/impl/Exception.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
-#include "quickjs/quickjs.h"
+#include "quickjs.h"
 
 namespace qjs {
 
@@ -13,7 +13,7 @@ template <> struct ValueTraits<std::string> {
   static std::string Unwrap(JSContext *ctx, JSValueConst v) {
     const char *ptr = JS_ToCString(ctx, v);
     if (!ptr)
-      throw QJSException(ctx);
+      throw Exception(ctx);
 
     std::string s(ptr);
     JS_FreeCString(ctx, ptr);
@@ -65,7 +65,7 @@ template <> struct ValueTraits<const char *> {
     size_t len;
     const char *ptr = JS_ToCStringLen(ctx, &len, v);
     if (!ptr) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
     return JSString(ctx, ptr, len);
   }

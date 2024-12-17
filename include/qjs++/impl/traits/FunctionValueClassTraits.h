@@ -2,7 +2,7 @@
 
 #include "qjs++/impl/Caller.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
-#include "quickjs/quickjs.h"
+#include "quickjs.h"
 #include <cassert>
 
 namespace qjs {

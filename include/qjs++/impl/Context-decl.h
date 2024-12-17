@@ -1,7 +1,9 @@
 #pragma once
 
+#include "qjs++/impl/Module-decl.h"
 #include "qjs++/impl/Runtime.h"
 #include "qjs++/impl/Value-decl.h"
+#include <unordered_map>
 
 namespace qjs {
 class Context {
@@ -14,9 +16,9 @@ public:
 
   Value NewObject();
 
-  // Value Eval(const std::string &script);
+  Value Eval(const std::string &script, bool global = true);
 
-  // Module &Module(const std::string &name);
+  Module &CreateModule(const std::string &name);
 
   // const Module &Module(const std::string &name) const;
 
@@ -28,11 +30,13 @@ private:
   JSContext *ctx_ = nullptr;
 
   /**
-   * @brief 所有我们注册进来的module
+   * @brief all created modules
    */
-  // std::unordered_map<std::string, Module> modules_;
+  std::unordered_map<std::string, Module> modules_;
 
   // template <typename T> friend class Class;
   // friend class Module;
+
+  friend class Module;
 };
 } // namespace qjs

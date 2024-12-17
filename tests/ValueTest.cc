@@ -244,18 +244,19 @@ TEST_F(ValueTest, SetProperty) {
 TEST_F(ValueTest, AssignProperty) {
   auto v = ctx.NewObject();
 
-  v["int"] = 123;
+  v.SetProperty("int", 123);
   EXPECT_TRUE(v["int"].IsNumber());
 
-  v["int"] = "123";
+  v.SetProperty("int", "123");
   EXPECT_TRUE(v["int"].IsString());
 
-  v["float"] = 3.f;
-  v["int"] = 123;
-  v["string"] = "name";
-  v["list"] = std::vector<std::string>({"1", "2", "3"});
-  v["c_function"] = c_fun;
-  v["labmda"] = std::function<int32_t(int)>([](int v) { return v + 1; });
+  v.SetProperty("float", 3.f);
+  v.SetProperty("int", 123);
+  v.SetProperty("string", "name");
+  v.SetProperty("list", std::vector<std::string>({"1", "2", "3"}));
+  v.SetProperty("c_function", c_fun);
+  v.SetProperty("labmda",
+                std::function<int32_t(int)>([](int v) { return v + 1; }));
 
   EXPECT_EQ(v["int"].As<int64_t>(), 123);
   EXPECT_EQ(v["int"].As<std::string>(), "123");

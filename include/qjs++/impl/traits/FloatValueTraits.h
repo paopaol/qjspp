@@ -15,7 +15,7 @@ struct ValueTraits<T, typename std::enable_if<IsFloatPoint<T>>::type> {
     double t;
 
     if (JS_ToFloat64(ctx, &t, v) < 0) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
     return t;
   }

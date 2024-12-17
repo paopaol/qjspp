@@ -5,6 +5,4 @@ target_sources(qjs++test PRIVATE ValueTraitsTest.cc RuntimeTest.cc
                                  ContextTest.cc ValueTest.cc)
 target_link_libraries(qjs++test PRIVATE GTest::gtest GTest::gtest_main)
 target_include_directories(qjs++test PRIVATE ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(qjs++test PRIVATE ${PROJECT_SOURCE_DIR}/usr/include)
-target_link_directories(qjs++test PRIVATE ${PROJECT_SOURCE_DIR}/usr/lib/quickjs)
-target_link_libraries(qjs++test PRIVATE quickjs)
+target_link_libraries(qjs++test PRIVATE qjs dl)

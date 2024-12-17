@@ -1,7 +1,7 @@
 #pragma once
 
 #include "qjs++/impl/Exception.h"
-#include "quickjs/quickjs.h"
+#include "quickjs.h"
 #include <memory>
 
 namespace qjs {
@@ -26,7 +26,7 @@ template <> struct ValueTraits<JSValue> {
 
 template <> struct ValueTraits<void> {
   static JSValue Unwrap(JSContext *ctx, JSValueConst v) {
-    throw QJSException(ctx);
+    throw Exception(ctx);
   }
 };
 

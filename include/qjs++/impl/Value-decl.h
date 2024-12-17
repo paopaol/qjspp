@@ -1,13 +1,12 @@
 #pragma once
 
-#include "quickjs/quickjs.h"
+#include "quickjs.h"
 #include <functional>
 #include <type_traits>
 
 namespace qjs {
 
 class Context;
-class PropertyProxy;
 
 class Value {
 public:
@@ -67,13 +66,6 @@ public:
    */
   Value operator[](const std::string &name) const;
 
-  /**
-   * @brief return property of name,
-   *
-   * if the name property not exists, create it
-   */
-  PropertyProxy operator[](const std::string &name);
-
   bool IsNull() const;
 
   bool IsUndefined() const;
@@ -95,8 +87,6 @@ public:
   bool IsObject() const;
 
   bool IsSymbol() const;
-
-  bool IsBigFloat() const;
 
   bool IsFunction() const;
 
@@ -125,24 +115,6 @@ private:
   JSValue v_;
 
   friend class Context;
-};
-
-class PropertyProxy : public Value {
-public:
-  PropertyProxy(Context *ctx, Value *v, const std::string &name);
-
-  PropertyProxy(const PropertyProxy &) = delete;
-
-  PropertyProxy &operator=(const PropertyProxy &) = delete;
-
-  PropertyProxy(PropertyProxy &&other);
-
-  template <typename U> PropertyProxy &operator=(U &&v);
-
-private:
-  Value *object_ = nullptr;
-  Context *ctx_ = nullptr;
-  std::string name_;
 };
 
 } // namespace qjs

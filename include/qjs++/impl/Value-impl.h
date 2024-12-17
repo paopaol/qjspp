@@ -8,23 +8,6 @@
 
 namespace qjs {
 
-inline PropertyProxy::PropertyProxy(Context *ctx, Value *v,
-                                    const std::string &name)
-    : Value(ctx, JS_GetPropertyStr(ctx->Get(), v->Raw(), name.c_str())),
-      ctx_(ctx), object_(v), name_(name) {
-  if (!object_->IsObject()) {
-    *object_ = ctx_->NewObject();
-  }
-}
-
-template <typename U> inline PropertyProxy &PropertyProxy::operator=(U &&v) {
-  Assgin(std::forward<U>(v));
-
-  JS_SetPropertyStr(ctx_->Get(), object_->Raw(), name_.c_str(),
-                    JS_DupValue(ctx_->Get(), Raw()));
-  return *this;
-}
-
 inline Value::Value() : ctx_(nullptr), v_(JS_UNDEFINED) {}
 
 inline Value::Value(Context *ctx) : ctx_(ctx), v_(JS_UNDEFINED) {}
@@ -69,10 +52,6 @@ inline Value Value::operator[](const std::string &name) const {
   return Property(name);
 }
 
-inline PropertyProxy Value::operator[](const std::string &name) {
-  return PropertyProxy(ctx_, this, name);
-}
-
 /**
  * @brief 添加并返回属性
  */
@@ -97,8 +76,6 @@ inline bool Value::IsBigInt() const { return JS_IsBigInt(ctx_->Get(), v_); }
 inline bool Value::IsObject() const { return JS_IsObject(v_); }
 
 inline bool Value::IsSymbol() const { return JS_IsSymbol(v_); }
-
-inline bool Value::IsBigFloat() const { return JS_IsBigFloat(v_); }
 
 inline bool Value::IsFunction() const { return JS_IsFunction(ctx_->Get(), v_); }
 

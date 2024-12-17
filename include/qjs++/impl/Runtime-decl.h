@@ -1,6 +1,6 @@
 #pragma once
 
-#include "quickjs/quickjs.h"
+#include "quickjs.h"
 
 namespace qjs {
 class Runtime {

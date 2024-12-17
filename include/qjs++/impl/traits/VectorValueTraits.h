@@ -2,7 +2,7 @@
 
 #include "qjs++/impl/Exception.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
-#include "quickjs/quickjs.h"
+#include "quickjs.h"
 #include <deque>
 #include <vector>
 
@@ -17,7 +17,7 @@ template <typename T> struct ArrayHelper {
     JSValue array = JS_NewArray(ctx);
 
     if (JS_IsException(array)) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
 
     int i = 0;
@@ -31,7 +31,7 @@ template <typename T> struct ArrayHelper {
   static T At(JSContext *ctx, JSValue array, uint32_t index) {
     auto e = JS_GetPropertyUint32(ctx, array, index);
     if (JS_IsException(e)) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
     auto v = ValueTraits<T>::Unwrap(ctx, e);
     /**
@@ -55,7 +55,7 @@ struct ValueTraits<
 
     JSValue length = JS_GetPropertyStr(ctx, v, "length");
     if (JS_IsException(length)) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
 
     int len = JS_VALUE_GET_INT(length);
@@ -77,7 +77,7 @@ template <typename T, std::size_t N> struct ValueTraits<std::array<T, N>> {
 
     JSValue length = JS_GetPropertyStr(ctx, v, "length");
     if (JS_IsException(length)) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
 
     int len = JS_VALUE_GET_INT(length);

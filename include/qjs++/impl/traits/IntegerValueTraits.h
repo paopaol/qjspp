@@ -2,7 +2,7 @@
 
 #include "JSValueTraits.h"
 #include "qjs++/impl/Exception.h"
-#include "quickjs/quickjs.h"
+#include "quickjs.h"
 #include <type_traits>
 
 namespace qjs {
@@ -25,7 +25,7 @@ struct ValueTraits<T, typename std::enable_if<IsSmallSignedInteger<T>>::type> {
     int32_t t;
 
     if (JS_ToInt32(ctx, &t, v) < 0) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
     return t;
   }
@@ -40,7 +40,7 @@ struct ValueTraits<T,
     uint32_t t;
 
     if (JS_ToUint32(ctx, &t, v) < 0) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
     return t;
   }
@@ -54,7 +54,7 @@ struct ValueTraits<T, typename std::enable_if<Is64Integer<T>>::type> {
     int64_t t;
 
     if (JS_ToInt64(ctx, &t, v) < 0) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
     return t;
   }
@@ -66,7 +66,7 @@ template <> struct ValueTraits<bool> {
   static bool Unwrap(JSContext *ctx, JSValueConst v) {
     auto b = JS_ToBool(ctx, v);
     if (b < 0) {
-      throw QJSException(ctx);
+      throw Exception(ctx);
     }
     return b;
   }
