@@ -51,10 +51,22 @@ TEST_F(ClassTest, CreateClass) {
       "Norm", &Point::Norm);
 
   const std::string s = R"xxx(
-         import * as my from 'mymodule';
+import * as my from 'mymodule';
 
-         globalThis.point = new my.Point(3,3)
-         console.log(globalThis.point.Norm("js-code"));
+class ColorPoint extends my.Point {
+    constructor(x, y, color) {
+        super(x, y);
+        this.color = color;
+    }
+
+    get_color() {
+        return this.color;
+    }
+};
+
+globalThis.point = new ColorPoint(3,7, "red")
+console.log("color is:", globalThis.point.get_color());
+console.log(globalThis.point.Norm("js-code"));
     )xxx";
   try {
     auto ret = ctx->Eval(s, false);

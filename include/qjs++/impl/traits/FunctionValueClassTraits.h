@@ -8,6 +8,16 @@
 
 namespace qjs {
 
+struct CppClassDef : public JSClassDef {
+
+  void SetClassName(const std::string &name) {
+    cpp_class_name = name;
+    class_name = cpp_class_name.c_str();
+  }
+
+  std::string cpp_class_name;
+};
+
 class ClassIdGenerator {
 public:
   static JSClassID Next() {
@@ -21,7 +31,7 @@ public:
 
 template <typename T> struct ClassMeta {
   static JSClassID id;
-  static JSClassDef def;
+  static CppClassDef def;
   static std::once_flag once;
 
   static void finalizer(JSRuntime *rt, JSValue val) {
@@ -35,7 +45,7 @@ template <typename T> struct ClassMeta {
   static void CreateClass(Context *ctx, const std::string &name) {
     std::call_once(once, [&]() {
       id = ClassIdGenerator::Next();
-      def.class_name = strdup(name.c_str());
+      def.SetClassName(name);
       def.finalizer = finalizer;
     });
 
@@ -49,7 +59,7 @@ template <typename T> struct ClassMeta {
 };
 
 template <typename T> JSClassID ClassMeta<T>::id = 0;
-template <typename T> JSClassDef ClassMeta<T>::def{};
+template <typename T> CppClassDef ClassMeta<T>::def{};
 template <typename T> std::once_flag ClassMeta<T>::once;
 
 class ClosureClass {
@@ -85,12 +95,19 @@ private:
   void *opaque_ = nullptr;
 };
 
+template <typename T> struct ExtendedClass {
+  static_assert(std::is_class<T>::value, "");
+
+  JSValue proto;
+  T *inst = nullptr;
+};
+
 template <typename T>
 struct ValueTraits<T *, std::enable_if_t<std::is_class<T>::value>> {
   static T *Unwrap(JSContext *ctx, JSValueConst v) {
     auto *opa =
         static_cast<std::shared_ptr<T> *>(JS_GetOpaque(v, ClassMeta<T>::id));
-    return opa->get();
+    return opa ? opa->get() : nullptr;
   }
 
   static JSValue Wrap(JSContext *ctx, T *v) {
@@ -100,6 +117,20 @@ struct ValueTraits<T *, std::enable_if_t<std::is_class<T>::value>> {
       return inst;
     }
     std::shared_ptr<T> *opaque = new std::shared_ptr<T>(v, [](T *) {});
+    JS_SetOpaque(inst, opaque);
+    return inst;
+  }
+
+  static JSValue Wrap(JSContext *ctx, ExtendedClass<T> v) {
+    assert(ClassMeta<T>::id != 0);
+
+    auto inst = JS_NewObjectProtoClass(ctx, v.proto, ClassMeta<T>::id);
+    JS_FreeValue(ctx, v.proto);
+
+    if (JS_IsException(inst)) {
+      return inst;
+    }
+    std::shared_ptr<T> *opaque = new std::shared_ptr<T>(v.inst, [](T *) {});
     JS_SetOpaque(inst, opaque);
     return inst;
   }
@@ -136,9 +167,18 @@ inline JSValue NewClosure(JSContext *ctx, ClosureClass::JSCallback callback,
 template <typename T, typename... Args> struct QJSCtor<T *(Args...)> {
   static JSValue Invoke(JSContext *ctx, JSValue this_val, int argc,
                         JSValue *argv) {
-    T *ret = InvokeNative<T *, Args...>(
+    T *inst = InvokeNative<T *, Args...>(
         ctx, [](Args... args) { return new T(args...); }, argc, argv);
-    return ValueTraits<T *>::Wrap(ctx, ret);
+
+    /* using new_target to get the prototype is necessary when the
+       class is extended. */
+    auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+    if (JS_IsException(proto)) {
+      delete inst;
+      return JS_EXCEPTION;
+    }
+
+    return ValueTraits<T *>::Wrap(ctx, ExtendedClass<T>{proto, inst});
   };
 
   std::string name;
