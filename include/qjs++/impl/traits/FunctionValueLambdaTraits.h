@@ -1,7 +1,6 @@
 #pragma once
 
 #include "qjs++/impl/Caller.h"
-#include "qjs++/impl/traits/FunctionValueFactory.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include "quickjs.h"
 #include <cassert>
