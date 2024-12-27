@@ -38,7 +38,11 @@ public:
   }
 
   template <typename T> ModuleProperty &operator=(T &&v) {
-    v_ = ValueTraits<T>::Wrap(ctx_->Get(), std::forward<T>(v));
+    Value value(ctx_);
+
+    value = std::forward<T>(v);
+
+    v_ = JS_DupValue(ctx_->Get(), value.Raw());
     JS_AddModuleExport(ctx_->Get(), m_, name_.c_str());
     return *this;
   }
@@ -151,9 +155,21 @@ Module &Module::SetProperty(const std::string &name, T &&v) {
   return *this;
 }
 
+template <typename F>
+Module &Module::SetLambdaProperty(const std::string &name, std::function<F> f) {
+  auto result =
+      d->exports.insert({name, ModuleProperty(d->ctx, d->m, name.c_str())});
+  result.first->second = std::forward<std::function<F>>(f);
+  return *this;
+}
+
 inline Value Module::Property(const std::string &name) const {
   auto it = d->exports.find(name);
   return it->second.GetValue();
+}
+
+template <typename T> Class<T> Module::CreateClass(const std::string &name) {
+  return Class<T>(d->ctx, this, name);
 }
 
 } // namespace qjs

@@ -35,4 +35,12 @@ R InvokeNative(JSContext *ctx, Callable &&call, int argc, JSValueConst *argv) {
       JSArrayUnwrap<typename std::decay<Args>::type...>(ctx, argc, argv);
   return absl::apply(std::forward<Callable>(call), std::move(args));
 }
+
+template <typename... Args, typename Callable>
+void VoidInvokeNative(JSContext *ctx, Callable &&call, int argc,
+                      JSValueConst *argv) {
+  auto args =
+      JSArrayUnwrap<typename std::decay<Args>::type...>(ctx, argc, argv);
+  absl::apply(std::forward<Callable>(call), std::move(args));
+}
 } // namespace qjs

@@ -37,7 +37,7 @@ template <typename T>
 inline Value &Value::SetProperty(const std::string &name, T &&v) {
   Value value(ctx_);
 
-  value = std::forward<T>(v);
+  value.Assgin(std::forward<T>(v));
 
   JS_SetPropertyStr(ctx_->Get(), v_, name.c_str(),
                     JS_DupValue(ctx_->Get(), value.Raw()));
@@ -137,6 +137,12 @@ template <typename R, typename... Args> void Value::Assgin(R (*f)(Args...)) {
   v_ = ValueTraits<QJSFunction<R (*)(Args...)>>::Wrap(ctx_->Get(), f);
 }
 
+template <typename T, typename R, typename... Args>
+void Value::Assgin(R (T::*f)(Args...)) {
+  FreeInternalValue();
+  v_ = ValueTraits<QJSFunction<R (T::*)(Args...)>>::Wrap(ctx_->Get(), f);
+}
+
 template <typename R, typename... Args>
 void Value::Assgin(std::function<R(Args...)> f) {
   FreeInternalValue();
@@ -146,6 +152,7 @@ void Value::Assgin(std::function<R(Args...)> f) {
 
 inline void Value::Steal(Value &&other) {
   if (ctx_) {
+    assert(ctx_->Get());
     JS_FreeValue(ctx_->Get(), v_);
     ctx_ = nullptr;
   }
@@ -159,10 +166,11 @@ inline void Value::Steal(Value &&other) {
 
 inline void Value::FreeInternalValue() {
   if (ctx_) {
+    assert(ctx_->Get());
     JS_FreeValue(ctx_->Get(), v_);
   }
 }
 
-inline const JSValue &Value::Raw() const { return v_; }
+inline JSValue Value::Raw() const { return v_; }
 
 } // namespace qjs

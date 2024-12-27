@@ -1,5 +1,6 @@
 #pragma once
 
+#include "qjs++/impl/Class.h"
 #include "qjs++/impl/Context.h"
 #include "qjs++/impl/Module.h"
 #include "qjs++/impl/Runtime.h"

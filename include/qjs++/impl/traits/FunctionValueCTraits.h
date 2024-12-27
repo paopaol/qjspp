@@ -1,6 +1,7 @@
 #pragma once
 
 #include "qjs++/impl/Caller.h"
+#include "qjs++/impl/traits/FunctionValueClassTraits.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include "quickjs.h"
 #include <cassert>
@@ -30,7 +31,7 @@ template <typename... Args> struct QJSFunction<void (*)(Args...)> {
   static JSValue Invoke(JSContext *ctx, JSValueConst this_val, int argc,
                         JSValueConst *argv, int magic, void *opaque) {
     auto *f = reinterpret_cast<Func>(opaque);
-    InvokeNative<void, Args...>(ctx, f, argc, argv);
+    VoidInvokeNative<Args...>(ctx, f, argc, argv);
 
     return JS_NULL;
   };
@@ -46,8 +47,8 @@ struct ValueTraits<QJSFunction<R (*)(Args...)>> {
   using Func = R (*)(Args...);
 
   static JSValue Wrap(JSContext *ctx, Func f) {
-    return JS_NewCClosure(ctx, QJSFunction<Func>::Invoke, 0, 0,
-                          reinterpret_cast<void *>(f), nullptr);
+    return NewClosure(ctx, QJSFunction<Func>::Invoke, nullptr,
+                      reinterpret_cast<void *>(f));
   }
 };
 

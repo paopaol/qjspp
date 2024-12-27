@@ -1,8 +1,12 @@
 #pragma once
 
+#include "qjs++/impl/ClosureClass.h"
 #include "qjs++/impl/Context-decl.h"
 #include "qjs++/impl/Exception-decl.h"
+#include "qjs++/impl/Runtime-decl.h"
+#include "quickjs-libc.h"
 #include <cassert>
+#include <quickjs.h>
 
 namespace qjs {
 static const std::string kStdLoadCode = R"---(
@@ -15,16 +19,17 @@ globalThis.os = os;
 
 const std::string kBootJsCode = R"---(var exports = {};)---";
 
-inline Context::Context(Runtime &rumtime) : ctx_(JS_NewContext(rumtime.rt_)) {
+inline Context::Context(Runtime &runtime) : ctx_(JS_NewContext(runtime.rt_)) {
   JS_SetContextOpaque(ctx_, this);
 
-  js_std_init_handlers(rumtime.rt_);
   js_std_add_helpers(ctx_, 0, nullptr);
   js_init_module_std(ctx_, "std");
   js_init_module_os(ctx_, "os");
 
-  // Eval(kBootJsCode, false);
-  // Eval(kStdLoadCode, false);
+  Eval(kBootJsCode, false);
+
+  auto &module = CreateModule("cpphelper");
+  module.CreateClass<ClosureClass>("ClosureClass");
 }
 
 inline Context::~Context() {
@@ -54,25 +59,22 @@ inline Value Context::NewObject() { return Value(this, JS_NewObject(ctx_)); }
 // }
 
 inline Value Context::Eval(const std::string &script, bool global) {
+  int flags = JS_EVAL_FLAG_BACKTRACE_BARRIER;
+
   if (global) {
-    auto ret = JS_Eval(ctx_, script.c_str(), script.size(), "<eval>",
-                       JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_STRICT |
-                           JS_EVAL_FLAG_BACKTRACE_BARRIER);
-    auto v = Value(this, ret);
-    if (v.IsException()) {
-      throw Exception(ctx_);
-    }
-    return v;
+    flags |= JS_EVAL_TYPE_GLOBAL;
   } else {
-    auto ret = JS_Eval(ctx_, script.c_str(), script.size(), "<eval>",
-                       JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_STRICT |
-                           JS_EVAL_FLAG_BACKTRACE_BARRIER);
-    auto v = Value(this, ret);
-    if (v.IsException()) {
-      throw Exception(ctx_);
-    }
-    return v;
+    flags |= JS_EVAL_TYPE_MODULE;
   }
+
+  auto ret = js_std_await(
+      ctx_, JS_Eval(ctx_, script.c_str(), script.size(), "<eval>", flags));
+  auto v = Value(this, ret);
+  if (v.IsException()) {
+    throw Exception(ctx_);
+  }
+
+  return v;
 }
 
 inline Module &Context::CreateModule(const std::string &name) {

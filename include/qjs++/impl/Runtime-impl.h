@@ -7,7 +7,6 @@ namespace qjs {
 
 inline Runtime::Runtime() : rt_(JS_NewRuntime()) {
   JS_SetModuleLoaderFunc(rt_, nullptr, js_module_loader, nullptr);
-
   js_std_init_handlers(rt_);
 }
 

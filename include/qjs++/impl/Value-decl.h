@@ -32,7 +32,6 @@ public:
   Value &operator=(Value &&other);
 
   template <typename T, typename = typename std::enable_if<
-                            !std::is_same<JSValue, T>::value &&
                             !std::is_same<Value, T>::value>::type>
   Value &operator=(T &&v);
 
@@ -94,14 +93,16 @@ public:
 
   template <typename T> T As() const;
 
-  const JSValue &Raw() const;
+  JSValue Raw() const;
 
   template <typename T, typename = typename std::enable_if<
-                            !std::is_same<JSValue, T>::value &&
                             !std::is_same<Value, T>::value>::type>
   void Assgin(T &&v);
 
   template <typename R, typename... Args> void Assgin(R (*f)(Args...));
+
+  template <typename T, typename R, typename... Args>
+  void Assgin(R (T::*f)(Args...));
 
   template <typename R, typename... Args>
   void Assgin(std::function<R(Args...)> f);

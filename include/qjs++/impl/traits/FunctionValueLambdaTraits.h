@@ -1,6 +1,7 @@
 #pragma once
 
 #include "qjs++/impl/Caller.h"
+#include "qjs++/impl/traits/FunctionValueFactory.h"
 #include "qjs++/impl/traits/JSValueTraits.h"
 #include "quickjs.h"
 #include <cassert>
@@ -26,8 +27,8 @@ struct QJSFunction<std::function<R(Args...)>> {
   };
 
   static void Finalizer(void *opaque) {
-    auto *method = reinterpret_cast<QJSFunction<Func> *>(opaque);
-    delete method;
+    auto *caller = reinterpret_cast<QJSFunction<Func> *>(opaque);
+    delete caller;
   }
 
   Func f;
@@ -43,13 +44,13 @@ template <typename... Args> struct QJSFunction<std::function<void(Args...)>> {
     const auto &f = F->f;
     assert(f);
 
-    InvokeNative<void, Args...>(ctx, f, argc, argv);
+    VoidInvokeNative<Args...>(ctx, f, argc, argv);
     return JS_NULL;
   };
 
   static void Finalizer(void *opaque) {
-    auto *method = reinterpret_cast<QJSFunction<Func> *>(opaque);
-    delete method;
+    auto *caller = reinterpret_cast<QJSFunction<Func> *>(opaque);
+    delete caller;
   }
 
   Func f;
@@ -66,8 +67,8 @@ struct ValueTraits<QJSFunction<std::function<R(Args...)>>> {
     auto *caller = new QJSFunction<Func>;
     caller->f = std::move(f);
 
-    return JS_NewCClosure(ctx, QJSFunction<Func>::Invoke, 0, 0, caller,
-                          QJSFunction<Func>::Finalizer);
+    return NewClosure(ctx, QJSFunction<Func>::Invoke,
+                      QJSFunction<Func>::Finalizer, caller);
   }
 };
 } // namespace qjs

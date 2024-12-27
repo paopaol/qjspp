@@ -8,6 +8,8 @@ namespace qjs {
 
 template <typename T> struct QJSFunction;
 
+template <typename T> struct QJSCtor;
+
 template <typename T, typename = void> struct ValueTraits {
   static T Unwrap(JSContext *ctx, JSValueConst v) = delete;
 
@@ -19,7 +21,7 @@ template <> struct ValueTraits<JSValue> {
     return JS_DupValue(ctx, v);
   }
 
-  static JSValue Wrap(JSContext *ctx, const JSValue &v) {
+  static JSValue Wrap(JSContext *ctx, const JSValue v) {
     return JS_DupValue(ctx, v);
   }
 };
@@ -27,16 +29,6 @@ template <> struct ValueTraits<JSValue> {
 template <> struct ValueTraits<void> {
   static JSValue Unwrap(JSContext *ctx, JSValueConst v) {
     throw Exception(ctx);
-  }
-};
-
-template <typename T> struct ValueTraits<T *> {
-  static T *Unwrap(JSContext *ctx, JSValueConst v) {
-    return new T(ValueTraits<T>::Unwrap(ctx, v));
-  }
-
-  static JSValue Wrap(JSContext *ctx, const T *v) {
-    return ValueTraits<T>::Wrap(ctx, *v);
   }
 };
 
