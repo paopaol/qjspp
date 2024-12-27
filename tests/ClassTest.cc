@@ -12,8 +12,8 @@ public:
     printf("~Point Constructor called x:%f y:%f %s\n", x_, y_, name_.c_str());
   }
 
-  float Norm() {
-    puts("call Norm Method");
+  float Norm(const std::string &caller_name) {
+    printf("%s  call Norm Method\n", caller_name.c_str());
 
     return std::sqrt(x_ * x_ + y_ * y_);
   }
@@ -36,14 +36,13 @@ public:
   std::shared_ptr<qjs::Context> ctx;
 };
 
-//TEST_F(ClassTest, ConstructorValueTRaits) {
-//  //  QJSCtor<Point *(float, float)> ctor{"Point"};
+TEST_F(ClassTest, ConstructorValueTRaits) {
+  QJSCtor<Point *(float, float)> ctor{"Point"};
 
-//  //  Value v(&ctx,
-//  //          ValueTraits<QJSCtor<Point *(float, float)>>::Wrap(ctx.Get(),
-//  //          ctor));
-//  //  EXPECT_TRUE(v.IsFunction());
-//}
+  Value v(ctx.get(),
+          ValueTraits<QJSCtor<Point *(float, float)>>::Wrap(ctx->Get(), ctor));
+  EXPECT_TRUE(v.IsFunction());
+}
 
 TEST_F(ClassTest, CreateClass) {
   auto &module = ctx->CreateModule("mymodule");
@@ -54,11 +53,12 @@ TEST_F(ClassTest, CreateClass) {
   const std::string s = R"xxx(
          import * as my from 'mymodule';
 
-         var point = new my.Point(3,3)
-//       console.log(point.Norm());
+         globalThis.point = new my.Point(3,3)
+         console.log(globalThis.point.Norm("js-code"));
     )xxx";
   try {
     auto ret = ctx->Eval(s, false);
+    ctx->Global()["point"].As<Point *>()->Norm("cpp-code");
   } catch (const qjs::Exception &e) {
     puts(e.String().c_str());
   }
