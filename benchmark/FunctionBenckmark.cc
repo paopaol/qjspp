@@ -1,6 +1,16 @@
 #include "benchmark/benchmark.h"
 #include "qjs++/QJS++.h"
 
+// --------------------------------------------------------------------
+// Benchmark                             Time           CPU Iterations
+// --------------------------------------------------------------------
+// BM_CallNativeCFunction               73 ns         73 ns    9353562
+// BM_CallJSCFunction                  356 ns        352 ns    2290115
+// BM_CallJSKambdaFunction             307 ns        307 ns    2272690
+// BM_CallNativeCFunctionFloat           0 ns          0 ns 1000000000
+// BM_CallJSCFunctionFloat              23 ns         23 ns   30955700
+// BM_CallJSKambdaFunctionFloat         24 ns         24 ns   28906210
+
 static std::string c_string_function(const std::string &value) { return value; }
 
 static float c_float_function(float value) { return value; }
